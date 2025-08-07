@@ -1,12 +1,20 @@
+import { ArrowRight, Dice6, Heart, FileText, Lock } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowRight, Dice6, Heart, FileText, Lock } from 'lucide-react';
 
 export interface LogEntry {
-  type: 'system' | 'character' | 'whisper' | 'dice' | 'ooc' | 'damage' | 'handout';
+  type:
+    | 'system'
+    | 'character'
+    | 'whisper'
+    | 'dice'
+    | 'ooc'
+    | 'damage'
+    | 'handout';
   character?: string;
   target?: string; // 귓속말 대상 (system도 사용 가능)
   content: string;
@@ -56,7 +64,12 @@ interface ScriptLogViewerProps {
   entriesPerPage?: number;
 }
 
-export function ScriptLogViewer({ entries, characters, settings, entriesPerPage = 20 }: ScriptLogViewerProps) {
+export function ScriptLogViewer({
+  entries,
+  characters,
+  settings,
+  entriesPerPage = 20,
+}: ScriptLogViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState('ic');
 
@@ -64,7 +77,16 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
   const getFilteredEntries = () => {
     switch (activeFilter) {
       case 'ic':
-        return entries.filter(entry => ['system', 'character', 'whisper', 'dice', 'damage', 'handout'].includes(entry.type));
+        return entries.filter(entry =>
+          [
+            'system',
+            'character',
+            'whisper',
+            'dice',
+            'damage',
+            'handout',
+          ].includes(entry.type)
+        );
       case 'all':
         return entries;
       default:
@@ -145,13 +167,15 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
         // 시스템이 특정 캐릭터에게 비밀스럽게 전달하는 경우
         return (
           <div key={key} style={paragraphStyle}>
-            <div className="flex gap-3">
-              {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-              <div className="flex-1 min-w-0 bg-amber-50 rounded-lg px-3 py-2">
-                <div className="text-muted-foreground italic" style={textStyle}>
-                  <ArrowRight className="w-3 h-3 inline mr-1" />
-                  <span className="font-medium">{entry.target}</span>
-                  <span className="ml-2">{entry.content}</span>
+            <div className='flex gap-3'>
+              {settings.showAvatars && (
+                <div className='w-7 h-7 flex-shrink-0'></div>
+              )}
+              <div className='flex-1 min-w-0 bg-amber-50 rounded-lg px-3 py-2'>
+                <div className='text-muted-foreground italic' style={textStyle}>
+                  <ArrowRight className='w-3 h-3 inline mr-1' />
+                  <span className='font-medium'>{entry.target}</span>
+                  <span className='ml-2'>{entry.content}</span>
                 </div>
               </div>
             </div>
@@ -160,8 +184,14 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
       } else {
         // 일반 시스템 메시지
         return (
-          <div key={key} style={{ ...paragraphStyle, marginBottom: `${settings.paragraphSpacing * 0.75}rem` }}>
-            <div className="text-muted-foreground" style={textStyle}>
+          <div
+            key={key}
+            style={{
+              ...paragraphStyle,
+              marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
+            }}
+          >
+            <div className='text-muted-foreground' style={textStyle}>
               {entry.content}
             </div>
           </div>
@@ -175,31 +205,36 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
 
       return (
         <div key={key} style={paragraphStyle}>
-          <div className="bg-amber-50 rounded-lg px-3 py-2 italic">
-            <div className="flex items-start gap-3">
+          <div className='bg-amber-50 rounded-lg px-3 py-2 italic'>
+            <div className='flex items-start gap-3'>
               {settings.showAvatars &&
                 (characterInfo ? (
-                  <Avatar className="w-6 h-6 flex-shrink-0">
+                  <Avatar className='w-6 h-6 flex-shrink-0'>
                     <AvatarImage
-                      src={characterInfo.thumbnail || '/placeholder.svg?height=40&width=40&query=character'}
+                      src={
+                        characterInfo.thumbnail ||
+                        '/placeholder.svg?height=40&width=40&query=character'
+                      }
                       alt={entry.character}
                     />
-                    <AvatarFallback className="bg-transparent border-0 text-xs">{entry.character.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className='bg-transparent border-0 text-xs'>
+                      {entry.character.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <div className="w-6 h-6 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                  <div className='w-6 h-6 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center text-xs'>
                     {entry.character.charAt(0)}
                   </div>
                 ))}
-              <div className="flex-1 min-w-0" style={textStyle}>
-                <span className="font-bold">{entry.character}</span>
+              <div className='flex-1 min-w-0' style={textStyle}>
+                <span className='font-bold'>{entry.character}</span>
                 {entry.target && (
                   <>
-                    <ArrowRight className="w-3 h-3 inline mx-1" />
-                    <span className="font-medium">{entry.target}</span>
+                    <ArrowRight className='w-3 h-3 inline mx-1' />
+                    <span className='font-medium'>{entry.target}</span>
                   </>
                 )}
-                <span className="ml-2">{entry.content}</span>
+                <span className='ml-2'>{entry.content}</span>
               </div>
             </div>
           </div>
@@ -209,25 +244,31 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
 
     // 주사위 굴리기 - 성공/실패 상태 추가
     if (entry.type === 'dice' && entry.diceResult) {
-      const { dice, result, rolls, modifier, success, difficulty } = entry.diceResult;
+      const { dice, result, rolls, modifier, success, difficulty } =
+        entry.diceResult;
       return (
         <div key={key} style={paragraphStyle}>
-          <div className="flex gap-3">
-            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-            <div className="flex-1 min-w-0 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
-              <div className="flex items-center gap-2 flex-wrap" style={textStyle}>
-                <Dice6 className="w-4 h-4 text-blue-600" />
-                <span className="font-bold">{entry.character}</span>
+          <div className='flex gap-3'>
+            {settings.showAvatars && (
+              <div className='w-7 h-7 flex-shrink-0'></div>
+            )}
+            <div className='flex-1 min-w-0 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200'>
+              <div
+                className='flex items-center gap-2 flex-wrap'
+                style={textStyle}
+              >
+                <Dice6 className='w-4 h-4 text-blue-600' />
+                <span className='font-bold'>{entry.character}</span>
                 <span>굴림:</span>
-                <Badge variant="secondary" className="font-mono">
+                <Badge variant='secondary' className='font-mono'>
                   {dice}
                 </Badge>
                 <span>=</span>
-                <span className="font-mono text-sm text-muted-foreground">
+                <span className='font-mono text-sm text-muted-foreground'>
                   [{rolls.join(', ')}]{modifier ? ` + ${modifier}` : ''}
                 </span>
                 <span>=</span>
-                <Badge variant="default" className="font-bold">
+                <Badge variant='default' className='font-bold'>
                   {result}
                 </Badge>
                 {typeof success === 'boolean' && (
@@ -239,12 +280,19 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
                     >
                       {success ? '성공' : '실패'}
                     </Badge>
-                    {difficulty && <span className="text-xs text-muted-foreground">(목표: {difficulty})</span>}
+                    {difficulty && (
+                      <span className='text-xs text-muted-foreground'>
+                        (목표: {difficulty})
+                      </span>
+                    )}
                   </>
                 )}
               </div>
               {entry.content && (
-                <div className="mt-1 text-sm text-muted-foreground" style={textStyle}>
+                <div
+                  className='mt-1 text-sm text-muted-foreground'
+                  style={textStyle}
+                >
                   {entry.content}
                 </div>
               )}
@@ -258,12 +306,14 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
     if (entry.type === 'ooc') {
       return (
         <div key={key} style={paragraphStyle}>
-          <div className="flex gap-3">
-            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-            <div className="flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
-              <div className="flex items-center gap-2" style={textStyle}>
-                <span className="font-medium">{entry.character}</span>
-                <span className="text-muted-foreground">{entry.content}</span>
+          <div className='flex gap-3'>
+            {settings.showAvatars && (
+              <div className='w-7 h-7 flex-shrink-0'></div>
+            )}
+            <div className='flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200'>
+              <div className='flex items-center gap-2' style={textStyle}>
+                <span className='font-medium'>{entry.character}</span>
+                <span className='text-muted-foreground'>{entry.content}</span>
               </div>
             </div>
           </div>
@@ -279,28 +329,39 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
         // 비밀 핸드아웃 - 어두운 배경, 흰색 폰트
         return (
           <div key={key} style={paragraphStyle}>
-            <div className="flex gap-3">
-              {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-              <div className="flex-1 min-w-0 bg-gray-800 rounded-lg px-3 py-2 border border-gray-700">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2" style={textStyle}>
-                    <Lock className="w-4 h-4 text-gray-300" />
-                    <Badge variant="secondary" className="bg-gray-700 text-gray-200 border-gray-600">
+            <div className='flex gap-3'>
+              {settings.showAvatars && (
+                <div className='w-7 h-7 flex-shrink-0'></div>
+              )}
+              <div className='flex-1 min-w-0 bg-gray-800 rounded-lg px-3 py-2 border border-gray-700'>
+                <div className='space-y-2'>
+                  <div className='flex items-center gap-2' style={textStyle}>
+                    <Lock className='w-4 h-4 text-gray-300' />
+                    <Badge
+                      variant='secondary'
+                      className='bg-gray-700 text-gray-200 border-gray-600'
+                    >
                       비밀 핸드아웃
                     </Badge>
                     {category && (
-                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
+                      <Badge
+                        variant='outline'
+                        className='text-xs border-gray-600 text-gray-300'
+                      >
                         {category}
                       </Badge>
                     )}
-                    <ArrowRight className="w-3 h-3 text-gray-400" />
-                    <span className="font-bold text-gray-100">{target}</span>
+                    <ArrowRight className='w-3 h-3 text-gray-400' />
+                    <span className='font-bold text-gray-100'>{target}</span>
                   </div>
-                  <div className="pl-6">
-                    <div className="font-medium text-gray-100 mb-1" style={textStyle}>
+                  <div className='pl-6'>
+                    <div
+                      className='font-medium text-gray-100 mb-1'
+                      style={textStyle}
+                    >
                       {title}
                     </div>
-                    <div className="text-sm text-gray-200" style={textStyle}>
+                    <div className='text-sm text-gray-200' style={textStyle}>
                       {entry.content}
                     </div>
                   </div>
@@ -313,28 +374,36 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
         // 일반 핸드아웃 - 흰색 배경
         return (
           <div key={key} style={paragraphStyle}>
-            <div className="flex gap-3">
-              {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-              <div className="flex-1 min-w-0 bg-white rounded-lg px-3 py-2 border border-gray-200">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2" style={textStyle}>
-                    <FileText className="w-4 h-4 text-gray-600" />
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+            <div className='flex gap-3'>
+              {settings.showAvatars && (
+                <div className='w-7 h-7 flex-shrink-0'></div>
+              )}
+              <div className='flex-1 min-w-0 bg-white rounded-lg px-3 py-2 border border-gray-200'>
+                <div className='space-y-2'>
+                  <div className='flex items-center gap-2' style={textStyle}>
+                    <FileText className='w-4 h-4 text-gray-600' />
+                    <Badge
+                      variant='secondary'
+                      className='bg-gray-100 text-gray-800'
+                    >
                       핸드아웃
                     </Badge>
                     {category && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant='outline' className='text-xs'>
                         {category}
                       </Badge>
                     )}
-                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                    <span className="font-bold text-gray-800">{target}</span>
+                    <ArrowRight className='w-3 h-3 text-muted-foreground' />
+                    <span className='font-bold text-gray-800'>{target}</span>
                   </div>
-                  <div className="pl-6">
-                    <div className="font-medium text-gray-900 mb-1" style={textStyle}>
+                  <div className='pl-6'>
+                    <div
+                      className='font-medium text-gray-900 mb-1'
+                      style={textStyle}
+                    >
                       {title}
                     </div>
-                    <div className="text-sm text-gray-700" style={textStyle}>
+                    <div className='text-sm text-gray-700' style={textStyle}>
                       {entry.content}
                     </div>
                   </div>
@@ -352,26 +421,45 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
       const isDamage = type === 'damage';
       return (
         <div key={key} style={paragraphStyle}>
-          <div className="flex gap-3">
-            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+          <div className='flex gap-3'>
+            {settings.showAvatars && (
+              <div className='w-7 h-7 flex-shrink-0'></div>
+            )}
             <div
               className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
-                isDamage ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+                isDamage
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-green-50 border-green-200'
               }`}
             >
-              <div className="flex items-center gap-2" style={textStyle}>
-                <Heart className={`w-4 h-4 ${isDamage ? 'text-red-600' : 'text-green-600'}`} />
-                <Badge variant="secondary" className={isDamage ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}>
+              <div className='flex items-center gap-2' style={textStyle}>
+                <Heart
+                  className={`w-4 h-4 ${isDamage ? 'text-red-600' : 'text-green-600'}`}
+                />
+                <Badge
+                  variant='secondary'
+                  className={
+                    isDamage
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }
+                >
                   {isDamage ? '데미지' : '힐링'}
                 </Badge>
-                <span className="font-bold">{target}</span>
+                <span className='font-bold'>{target}</span>
                 <span>{isDamage ? '받은 피해:' : '회복:'}</span>
-                <Badge variant="default" className={`font-bold ${isDamage ? 'bg-red-600' : 'bg-green-600'}`}>
+                <Badge
+                  variant='default'
+                  className={`font-bold ${isDamage ? 'bg-red-600' : 'bg-green-600'}`}
+                >
                   {amount}
                 </Badge>
               </div>
               {entry.content && (
-                <div className="mt-1 text-sm text-muted-foreground" style={textStyle}>
+                <div
+                  className='mt-1 text-sm text-muted-foreground'
+                  style={textStyle}
+                >
                   {entry.content}
                 </div>
               )}
@@ -386,34 +474,40 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
       const characterInfo = getCharacterInfo(entry.character);
 
       return (
-        <div key={key} className="flex gap-3" style={paragraphStyle}>
+        <div key={key} className='flex gap-3' style={paragraphStyle}>
           {/* 일반 캐릭터 - 설정에 따라 아바타 표시/숨김 */}
           {settings.showAvatars &&
             (characterInfo ? (
-              <Avatar className="w-7 h-7 flex-shrink-0">
+              <Avatar className='w-7 h-7 flex-shrink-0'>
                 <AvatarImage
-                  src={characterInfo.thumbnail || '/placeholder.svg?height=40&width=40&query=character'}
+                  src={
+                    characterInfo.thumbnail ||
+                    '/placeholder.svg?height=40&width=40&query=character'
+                  }
                   alt={entry.character}
-                  onError={(e) => {
-                    console.log(`Avatar failed to load for ${entry.character}:`, characterInfo.thumbnail);
+                  onError={e => {
+                    console.log(
+                      `Avatar failed to load for ${entry.character}:`,
+                      characterInfo.thumbnail
+                    );
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
-                <AvatarFallback className="bg-gray-200 text-xs font-medium">
+                <AvatarFallback className='bg-gray-200 text-xs font-medium'>
                   {entry.character?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
             ) : (
               // NPC의 경우 기본 아바타 표시
-              <div className="w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700">
+              <div className='w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700'>
                 {entry.character?.charAt(0) || '?'}
               </div>
             ))}
 
-          <div className="flex-1 min-w-0">
+          <div className='flex-1 min-w-0'>
             <div style={textStyle}>
-              <span className="font-bold">{entry.character}</span>
-              <span className="ml-4">{entry.content}</span>
+              <span className='font-bold'>{entry.character}</span>
+              <span className='ml-4'>{entry.content}</span>
             </div>
           </div>
         </div>
@@ -431,15 +525,23 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
 
     return (
       <div key={key} style={paragraphStyle}>
-        <div className="flex gap-3">
-          {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-          <div className="flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
-            <div className="space-y-2">
+        <div className='flex gap-3'>
+          {settings.showAvatars && (
+            <div className='w-7 h-7 flex-shrink-0'></div>
+          )}
+          <div className='flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200'>
+            <div className='space-y-2'>
               {oocEntries.map((entry, index) => (
-                <div key={`${entry.id}-${index}`} className="flex items-start gap-2" style={textStyle}>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium">{entry.character}</span>
-                    <span className="ml-2 text-muted-foreground">{entry.content}</span>
+                <div
+                  key={`${entry.id}-${index}`}
+                  className='flex items-start gap-2'
+                  style={textStyle}
+                >
+                  <div className='flex-1 min-w-0'>
+                    <span className='font-medium'>{entry.character}</span>
+                    <span className='ml-2 text-muted-foreground'>
+                      {entry.content}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -461,7 +563,7 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
     const showPages = 5; // 보여줄 페이지 수
 
     let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-    let endPage = Math.min(totalPages, startPage + showPages - 1);
+    const endPage = Math.min(totalPages, startPage + showPages - 1);
 
     // 끝에서 시작점 조정
     if (endPage - startPage + 1 < showPages) {
@@ -470,23 +572,34 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
 
     // 이전 버튼
     pages.push(
-      <Button key="prev" variant="outline" size="sm" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+      <Button
+        key='prev'
+        variant='outline'
+        size='sm'
+        onClick={() => goToPage(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
         &lt;
-      </Button>,
+      </Button>
     );
 
     // 첫 페이지
     if (startPage > 1) {
       pages.push(
-        <Button key={1} variant={1 === currentPage ? 'default' : 'outline'} size="sm" onClick={() => goToPage(1)}>
+        <Button
+          key={1}
+          variant={1 === currentPage ? 'default' : 'outline'}
+          size='sm'
+          onClick={() => goToPage(1)}
+        >
           1
-        </Button>,
+        </Button>
       );
       if (startPage > 2) {
         pages.push(
-          <span key="dots1" className="px-2 text-muted-foreground">
+          <span key='dots1' className='px-2 text-muted-foreground'>
             ...
-          </span>,
+          </span>
         );
       }
     }
@@ -494,9 +607,14 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
     // 중간 페이지들
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
-        <Button key={i} variant={i === currentPage ? 'default' : 'outline'} size="sm" onClick={() => goToPage(i)}>
+        <Button
+          key={i}
+          variant={i === currentPage ? 'default' : 'outline'}
+          size='sm'
+          onClick={() => goToPage(i)}
+        >
           {i}
-        </Button>,
+        </Button>
       );
     }
 
@@ -504,52 +622,56 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
-          <span key="dots2" className="px-2 text-muted-foreground">
+          <span key='dots2' className='px-2 text-muted-foreground'>
             ...
-          </span>,
+          </span>
         );
       }
       pages.push(
         <Button
           key={totalPages}
           variant={totalPages === currentPage ? 'default' : 'outline'}
-          size="sm"
+          size='sm'
           onClick={() => goToPage(totalPages)}
         >
           {totalPages}
-        </Button>,
+        </Button>
       );
     }
 
     // 다음 버튼
     pages.push(
       <Button
-        key="next"
-        variant="outline"
-        size="sm"
+        key='next'
+        variant='outline'
+        size='sm'
         onClick={() => goToPage(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
         &gt;
-      </Button>,
+      </Button>
     );
 
     return pages;
   };
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* 필터 탭 - IC가 기본, 전체가 두번째 */}
-      <Tabs value={activeFilter} onValueChange={handleFilterChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="ic">IC</TabsTrigger>
-          <TabsTrigger value="all">전체</TabsTrigger>
+      <Tabs
+        value={activeFilter}
+        onValueChange={handleFilterChange}
+        className='w-full'
+      >
+        <TabsList className='grid w-full grid-cols-2'>
+          <TabsTrigger value='ic'>IC</TabsTrigger>
+          <TabsTrigger value='all'>전체</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeFilter} className="mt-4">
+        <TabsContent value={activeFilter} className='mt-4'>
           {/* 로그 내용 */}
-          <div className="min-h-96">
-            <div className="space-y-0">
+          <div className='min-h-96'>
+            <div className='space-y-0'>
               {groupedEntries.map((item, index) => {
                 if (Array.isArray(item)) {
                   // OOC 그룹인 경우
@@ -562,13 +684,17 @@ export function ScriptLogViewer({ entries, characters, settings, entriesPerPage 
             </div>
 
             {currentEntries.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">해당 필터에 표시할 내용이 없습니다.</div>
+              <div className='text-center py-12 text-muted-foreground'>
+                해당 필터에 표시할 내용이 없습니다.
+              </div>
             )}
           </div>
 
           {/* 페이지네이션 */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1 pt-4 border-t">{renderPagination()}</div>
+            <div className='flex items-center justify-center gap-1 pt-4 border-t'>
+              {renderPagination()}
+            </div>
           )}
         </TabsContent>
       </Tabs>

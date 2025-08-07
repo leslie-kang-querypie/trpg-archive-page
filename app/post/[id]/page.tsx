@@ -1,23 +1,27 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Eye, Lock, Unlock, FileText } from 'lucide-react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useKeyboardShortcuts, createCommonShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useState, useRef } from 'react';
+
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help';
 import { ReadingSettingsModal } from '@/components/reading-settings-modal';
 
 // 컴포넌트 imports
 import { SessionInfoTemplate } from '@/components/session-info-template';
-import { SubPostSidebar } from '@/components/sub-post-sidebar';
 import { SubPostContent } from '@/components/sub-post-content';
+import { SubPostSidebar } from '@/components/sub-post-sidebar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  useKeyboardShortcuts,
+  createCommonShortcuts,
+} from '@/hooks/use-keyboard-shortcuts';
 
 // 더미 데이터 (실제로는 API에서 가져옴)
 const getPost = (id: string) => {
@@ -25,7 +29,8 @@ const getPost = (id: string) => {
     {
       id: 1,
       title: '시노비가미 - 벚꽃이 지는 밤에',
-      summary: '현대 일본을 배경으로 한 닌자들의 이야기. 숨겨진 진실을 찾아 나서는 모험',
+      summary:
+        '현대 일본을 배경으로 한 닌자들의 이야기. 숨겨진 진실을 찾아 나서는 모험',
       thumbnail: '/fantasy-dungeon-goblins.png',
       tags: ['시노비가미', '현대', '닌자'],
       date: '2024-01-15',
@@ -43,21 +48,24 @@ const getPost = (id: string) => {
             name: '카게마루',
             player: '타로',
             class: '하급닌자',
-            description: '전통적인 닌자 가문 출신. 조용하고 신중한 성격으로 정보 수집에 능하다.',
+            description:
+              '전통적인 닌자 가문 출신. 조용하고 신중한 성격으로 정보 수집에 능하다.',
             thumbnail: '/character-elf-rogue.png',
           },
           {
             name: '사쿠라',
             player: '하나코',
             class: '쿠노이치',
-            description: '현대적인 감각을 가진 여성 닌자. 사교적이고 적응력이 뛰어나다.',
+            description:
+              '현대적인 감각을 가진 여성 닌자. 사교적이고 적응력이 뛰어나다.',
             thumbnail: '/character-human-bard.png',
           },
           {
             name: '류진',
             player: '지로',
             class: '상급닌자',
-            description: '경험 많은 베테랑 닌자. 과묵하지만 동료를 아끼는 마음이 깊다.',
+            description:
+              '경험 많은 베테랑 닌자. 과묵하지만 동료를 아끼는 마음이 깊다.',
             thumbnail: '/character-dwarf-fighter.png',
           },
         ],
@@ -68,30 +76,35 @@ const getPost = (id: string) => {
         {
           id: 'session-1',
           title: '1세션: 첫 만남',
-          description: '세 명의 닌자가 처음 만나 사건의 실마리를 찾아가는 이야기',
+          description:
+            '세 명의 닌자가 처음 만나 사건의 실마리를 찾아가는 이야기',
           content: [
             {
               id: 1,
               type: 'system' as const,
-              content: '도쿄 시부야의 한 카페. 벚꽃이 흩날리는 봄밤, 평범해 보이는 카페에 세 명의 특별한 손님이 모였다.',
+              content:
+                '도쿄 시부야의 한 카페. 벚꽃이 흩날리는 봄밤, 평범해 보이는 카페에 세 명의 특별한 손님이 모였다.',
             },
             {
               id: 2,
               type: 'character' as const,
               character: '카게마루',
-              content: '조용히 카페 구석 자리에 앉아 다른 두 사람을 관찰한다. "...예상했던 대로군."',
+              content:
+                '조용히 카페 구석 자리에 앉아 다른 두 사람을 관찰한다. "...예상했던 대로군."',
             },
             {
               id: 3,
               type: 'ooc' as const,
               character: '타로',
-              content: '카게마루는 어떤 느낌으로 앉아있을까요? 경계하는 느낌인가요?',
+              content:
+                '카게마루는 어떤 느낌으로 앉아있을까요? 경계하는 느낌인가요?',
             },
             {
               id: 4,
               type: 'ooc' as const,
               character: 'GM',
-              content: '네, 카게마루는 항상 주변을 경계하는 습관이 있어요. 특히 처음 보는 사람들과 만날 때는 더욱 그렇죠.',
+              content:
+                '네, 카게마루는 항상 주변을 경계하는 습관이 있어요. 특히 처음 보는 사람들과 만날 때는 더욱 그렇죠.',
             },
             {
               id: 5,
@@ -103,31 +116,36 @@ const getPost = (id: string) => {
               id: 6,
               type: 'character' as const,
               character: '사쿠라',
-              content: '밝은 미소를 지으며 다가온다. "안녕하세요! 오늘 날씨가 정말 좋네요. 벚꽃이 예쁘게 피었어요."',
+              content:
+                '밝은 미소를 지으며 다가온다. "안녕하세요! 오늘 날씨가 정말 좋네요. 벚꽃이 예쁘게 피었어요."',
             },
             {
               id: 7,
               type: 'character' as const,
               character: '카게마루',
-              content: '사쿠라를 조심스럽게 바라보며 고개를 끄덕인다. "...그렇군요."',
+              content:
+                '사쿠라를 조심스럽게 바라보며 고개를 끄덕인다. "...그렇군요."',
             },
             {
               id: 8,
               type: 'ooc' as const,
               character: '하나코',
-              content: '사쿠라는 아직 다른 두 사람이 닌자라는 걸 확신하지 못하는 상황인가요?',
+              content:
+                '사쿠라는 아직 다른 두 사람이 닌자라는 걸 확신하지 못하는 상황인가요?',
             },
             {
               id: 9,
               type: 'ooc' as const,
               character: 'GM',
-              content: '맞습니다. 사쿠라는 추측만 하고 있는 상태예요. 확신은 없죠.',
+              content:
+                '맞습니다. 사쿠라는 추측만 하고 있는 상태예요. 확신은 없죠.',
             },
             {
               id: 10,
               type: 'character' as const,
               character: '류진',
-              content: '묵묵히 커피를 마시며 상황을 지켜본다. "모두 모인 것 같군. 본론으로 들어가자."',
+              content:
+                '묵묵히 커피를 마시며 상황을 지켜본다. "모두 모인 것 같군. 본론으로 들어가자."',
             },
             {
               id: 11,
@@ -139,13 +157,15 @@ const getPost = (id: string) => {
               id: 12,
               type: 'character' as const,
               character: '사쿠라',
-              content: '"그런데... 여러분도 최근 이상한 일들이 많이 일어난다고 생각하지 않으세요?"',
+              content:
+                '"그런데... 여러분도 최근 이상한 일들이 많이 일어난다고 생각하지 않으세요?"',
             },
             {
               id: 13,
               type: 'character' as const,
               character: '카게마루',
-              content: '잠시 침묵한 후 천천히 입을 연다. "어떤 종류의 이상한 일을 말하는 건가요?"',
+              content:
+                '잠시 침묵한 후 천천히 입을 연다. "어떤 종류의 이상한 일을 말하는 건가요?"',
             },
             {
               id: 14,
@@ -157,19 +177,22 @@ const getPost = (id: string) => {
               id: 15,
               type: 'ooc' as const,
               character: 'GM',
-              content: '네, 정확해요. 상대방이 얼마나 알고 있는지 파악하려는 거예요.',
+              content:
+                '네, 정확해요. 상대방이 얼마나 알고 있는지 파악하려는 거예요.',
             },
             {
               id: 16,
               type: 'character' as const,
               character: '사쿠라',
-              content: '"음... 그냥 뉴스에서 보는 사건들이 좀 이상하다고 생각해서요. 마치 누군가 의도적으로..."',
+              content:
+                '"음... 그냥 뉴스에서 보는 사건들이 좀 이상하다고 생각해서요. 마치 누군가 의도적으로..."',
             },
             {
               id: 17,
               type: 'character' as const,
               character: '류진',
-              content: '사쿠라의 말을 끊으며 "조심스럽게 말하는 게 좋겠군. 여기는 공개된 장소니까."',
+              content:
+                '사쿠라의 말을 끊으며 "조심스럽게 말하는 게 좋겠군. 여기는 공개된 장소니까."',
             },
             {
               id: 18,
@@ -207,13 +230,15 @@ const getPost = (id: string) => {
               id: 22,
               type: 'ooc' as const,
               character: 'GM',
-              content: '성공입니다! 류진은 저들이 "검은 벚꽃" 조직의 감시팀이라는 것을 알아챕니다.',
+              content:
+                '성공입니다! 류진은 저들이 "검은 벚꽃" 조직의 감시팀이라는 것을 알아챕니다.',
             },
             {
               id: 23,
               type: 'character' as const,
               character: '류진',
-              content: '표정이 굳어지며 작은 목소리로 "이곳은 안전하지 않다. 다른 곳으로 이동하자."',
+              content:
+                '표정이 굳어지며 작은 목소리로 "이곳은 안전하지 않다. 다른 곳으로 이동하자."',
             },
             {
               id: 24,
@@ -225,7 +250,8 @@ const getPost = (id: string) => {
               id: 25,
               type: 'character' as const,
               character: '사쿠라',
-              content: '상황을 파악하지 못한 채 당황하며 "어, 어디로 가시는 거예요?"',
+              content:
+                '상황을 파악하지 못한 채 당황하며 "어, 어디로 가시는 거예요?"',
             },
             {
               id: 26,
@@ -237,7 +263,8 @@ const getPost = (id: string) => {
               id: 27,
               type: 'ooc' as const,
               character: 'GM',
-              content: '사쿠라의 직감으로 판정해보세요. 이 상황이 위험한지 느낄 수 있는지요.',
+              content:
+                '사쿠라의 직감으로 판정해보세요. 이 상황이 위험한지 느낄 수 있는지요.',
             },
             {
               id: 28,
@@ -263,24 +290,28 @@ const getPost = (id: string) => {
               id: 30,
               type: 'ooc' as const,
               character: 'GM',
-              content: '성공! 사쿠라는 지금 상황이 심상치 않다는 것을 직감적으로 느낍니다.',
+              content:
+                '성공! 사쿠라는 지금 상황이 심상치 않다는 것을 직감적으로 느낍니다.',
             },
             {
               id: 31,
               type: 'character' as const,
               character: '사쿠라',
-              content: '직감적으로 위험을 느끼며 "저... 저도 같이 가도 될까요?"',
+              content:
+                '직감적으로 위험을 느끼며 "저... 저도 같이 가도 될까요?"',
             },
             {
               id: 32,
               type: 'character' as const,
               character: '류진',
-              content: '잠시 사쿠라를 바라보더니 고개를 끄덕인다. "따라오시오."',
+              content:
+                '잠시 사쿠라를 바라보더니 고개를 끄덕인다. "따라오시오."',
             },
             {
               id: 33,
               type: 'system' as const,
-              content: '세 닌자는 각자 다른 방향으로 카페를 빠져나갔다. 하지만 이것은 시작에 불과했다.',
+              content:
+                '세 닌자는 각자 다른 방향으로 카페를 빠져나갔다. 하지만 이것은 시작에 불과했다.',
             },
             {
               id: 34,
@@ -292,7 +323,8 @@ const getPost = (id: string) => {
               id: 35,
               type: 'ooc' as const,
               character: 'GM',
-              content: '네, 오늘은 여기까지 하겠습니다. 다음 세션에서는 안전한 장소에서의 본격적인 대화부터 시작할게요.',
+              content:
+                '네, 오늘은 여기까지 하겠습니다. 다음 세션에서는 안전한 장소에서의 본격적인 대화부터 시작할게요.',
             },
             {
               id: 36,
@@ -304,7 +336,8 @@ const getPost = (id: string) => {
               id: 37,
               type: 'ooc' as const,
               character: '지로',
-              content: '저도요. 류진이 조직 사람들을 알아본 부분이 인상적이었어요.',
+              content:
+                '저도요. 류진이 조직 사람들을 알아본 부분이 인상적이었어요.',
             },
             {
               id: 38,
@@ -361,7 +394,9 @@ export default function PostDetailPage() {
       key: 'ArrowUp',
       action: () => {
         if (isUnlocked && post?.subPosts) {
-          const currentIndex = post.subPosts.findIndex(sp => sp.id === activeSubPostId);
+          const currentIndex = post.subPosts.findIndex(
+            sp => sp.id === activeSubPostId
+          );
           if (currentIndex > 0) {
             setActiveSubPostId(post.subPosts[currentIndex - 1].id);
           }
@@ -373,7 +408,9 @@ export default function PostDetailPage() {
       key: 'ArrowDown',
       action: () => {
         if (isUnlocked && post?.subPosts) {
-          const currentIndex = post.subPosts.findIndex(sp => sp.id === activeSubPostId);
+          const currentIndex = post.subPosts.findIndex(
+            sp => sp.id === activeSubPostId
+          );
           if (currentIndex < post.subPosts.length - 1) {
             setActiveSubPostId(post.subPosts[currentIndex + 1].id);
           }
@@ -387,11 +424,13 @@ export default function PostDetailPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className='min-h-screen bg-background flex items-center justify-center'>
         <Card>
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">게시글을 찾을 수 없습니다</h2>
-            <Link href="/">
+          <CardContent className='p-6 text-center'>
+            <h2 className='text-xl font-semibold mb-2'>
+              게시글을 찾을 수 없습니다
+            </h2>
+            <Link href='/'>
               <Button>홈으로 돌아가기</Button>
             </Link>
           </CardContent>
@@ -414,52 +453,53 @@ export default function PostDetailPage() {
     }
   };
 
-  const activeSubPost = post.subPosts?.find(sp => sp.id === activeSubPostId) || null;
+  const activeSubPost =
+    post.subPosts?.find(sp => sp.id === activeSubPostId) || null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className='min-h-screen bg-background'>
+      <header className='border-b bg-card'>
+        <div className='container mx-auto px-4 py-4'>
+          <div className='flex items-center gap-4'>
+            <Link href='/'>
+              <Button variant='ghost' size='sm'>
+                <ArrowLeft className='w-4 h-4 mr-2' />
                 목록으로
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold">TRPG 로그 상세</h1>
+            <h1 className='text-xl font-semibold'>TRPG 로그 상세</h1>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <Card className="mb-6">
+      <div className='container mx-auto px-4 py-6 max-w-6xl'>
+        <Card className='mb-6'>
           <CardHeader>
-            <div className="flex items-start gap-4">
+            <div className='flex items-start gap-4'>
               <Image
                 src={post.thumbnail || '/placeholder.svg'}
                 alt={post.title}
                 width={200}
                 height={150}
-                className="rounded-lg object-cover flex-shrink-0"
+                className='rounded-lg object-cover flex-shrink-0'
               />
-              <div className="flex-1">
-                <CardTitle className="text-2xl mb-2">{post.title}</CardTitle>
-                <div className="flex flex-wrap gap-2 mb-3">
+              <div className='flex-1'>
+                <CardTitle className='text-2xl mb-2'>{post.title}</CardTitle>
+                <div className='flex flex-wrap gap-2 mb-3'>
                   {post.tags.map(tag => (
-                    <Badge key={tag} variant="secondary">
+                    <Badge key={tag} variant='secondary'>
                       {tag}
                     </Badge>
                   ))}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className='flex items-center gap-4 text-sm text-muted-foreground'>
                   <span>{post.date}</span>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
+                  <div className='flex items-center gap-1'>
+                    <Eye className='w-4 h-4' />
                     <span>{post.views}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <FileText className="w-4 h-4" />
+                  <div className='flex items-center gap-1'>
+                    <FileText className='w-4 h-4' />
                     <span>{post.subPosts?.length || 0}개 세션</span>
                   </div>
                 </div>
@@ -468,14 +508,14 @@ export default function PostDetailPage() {
           </CardHeader>
 
           <CardContent>
-            <div className="space-y-6">
+            <div className='space-y-6'>
               {/* 공개 요약 */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Unlock className="w-5 h-5" />
+                <h3 className='text-lg font-semibold mb-4 flex items-center gap-2'>
+                  <Unlock className='w-5 h-5' />
                   캠페인 정보
                 </h3>
-                <div className="bg-muted/30 p-6 rounded-lg">
+                <div className='bg-muted/30 p-6 rounded-lg'>
                   <SessionInfoTemplate sessionInfo={post.sessionInfo} />
                 </div>
               </div>
@@ -487,36 +527,42 @@ export default function PostDetailPage() {
         {!isUnlocked ? (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5" />
+              <CardTitle className='flex items-center gap-2'>
+                <Lock className='w-5 h-5' />
                 세션 로그 (비밀글)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 <div>
-                  <h4 className="text-lg font-medium flex items-center gap-2 mb-2">
-                    <Lock className="w-5 h-5" />
+                  <h4 className='text-lg font-medium flex items-center gap-2 mb-2'>
+                    <Lock className='w-5 h-5' />
                     비밀번호가 필요합니다
                   </h4>
-                  <p className="text-sm text-muted-foreground">모든 세션 로그를 보려면 비밀번호를 입력해주세요.</p>
+                  <p className='text-sm text-muted-foreground'>
+                    모든 세션 로그를 보려면 비밀번호를 입력해주세요.
+                  </p>
                 </div>
-                <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password">비밀번호</Label>
+                <form onSubmit={handlePasswordSubmit} className='space-y-4'>
+                  <div className='space-y-2'>
+                    <Label htmlFor='password'>비밀번호</Label>
                     <Input
                       ref={passwordInputRef}
-                      id="password"
-                      type="password"
+                      id='password'
+                      type='password'
                       value={passwordInput}
                       onChange={e => setPasswordInput(e.target.value)}
-                      placeholder="비밀번호를 입력하세요 (단축키: P)"
+                      placeholder='비밀번호를 입력하세요 (단축키: P)'
                       required
                     />
-                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+                    {passwordError && (
+                      <p className='text-sm text-destructive'>
+                        {passwordError}
+                      </p>
+                    )}
                   </div>
-                  <Button type="submit">
-                    <Unlock className="w-4 h-4 mr-2" />
+                  <Button type='submit'>
+                    <Unlock className='w-4 h-4 mr-2' />
                     잠금 해제
                   </Button>
                 </form>
@@ -524,7 +570,7 @@ export default function PostDetailPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="flex gap-6">
+          <div className='flex gap-6'>
             {/* Sticky 세션 목록 */}
             <SubPostSidebar
               subPosts={post.subPosts || []}
@@ -534,7 +580,11 @@ export default function PostDetailPage() {
             />
 
             {/* 세션 콘텐츠 */}
-            <SubPostContent subPost={activeSubPost} characters={post.sessionInfo.characters} settings={readingSettings} />
+            <SubPostContent
+              subPost={activeSubPost}
+              characters={post.sessionInfo.characters}
+              settings={readingSettings}
+            />
           </div>
         )}
       </div>
