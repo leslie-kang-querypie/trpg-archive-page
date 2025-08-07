@@ -1,14 +1,38 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ChevronLeft, ChevronRight, ArrowRight, Dice6, MessageSquare, Heart, FileText, Lock } from 'lucide-react'
 
 export interface LogEntry {
   id: number
-  type: 'system' | 'character' | 'whisper'
+  type: 'system' | 'character' | 'whisper' | 'dice' | 'ooc' | 'damage' | 'handout'
   character?: string
   target?: string  // 귓속말 대상 (system도 사용 가능)
   content: string
+  // 주사위 관련 추가 정보
+  diceResult?: {
+    dice: string // 예: "1d20+5"
+    result: number
+    rolls: number[] // 실제 굴린 값들
+    modifier?: number
+    success?: boolean // 성공/실패 여부
+    difficulty?: number // 목표값
+  }
+  // 데미지 관련 추가 정보
+  damageInfo?: {
+    amount: number
+    type: string // "damage" | "heal"
+    target: string
+  }
+  // 핸드아웃 관련 추가 정보
+  handoutInfo?: {
+    title: string
+    target: string // 받는 플레이어
+    category?: string // "배경", "사명", "비밀" 등
+    isSecret?: boolean // 비밀 핸드아웃 여부
+  }
 }
 
 interface Character {
@@ -40,11 +64,33 @@ export function ScriptLogViewer({
   entriesPerPage = 20 
 }: ScriptLogViewerProps) {
   const [currentPage, setCurrentPage] = useState(1)
+  const [activeFilter, setActiveFilter] = useState('ic')
   
-  const totalPages = Math.ceil(entries.length / entriesPerPage)
+  // 필터링된 엔트리들
+  const getFilteredEntries = () => {
+    switch (activeFilter) {
+      case 'ic':
+        return entries.filter(entry => 
+          ['system', 'character', 'whisper', 'dice', 'damage', 'handout'].includes(entry.type)
+        )
+      case 'all':
+        return entries
+      default:
+        return entries
+    }
+  }
+
+  const filteredEntries = getFilteredEntries()
+  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage)
   const startIndex = (currentPage - 1) * entriesPerPage
   const endIndex = startIndex + entriesPerPage
-  const currentEntries = entries.slice(startIndex, endIndex)
+  const currentEntries = filteredEntries.slice(startIndex, endIndex)
+
+  // 필터 변경 시 페이지 초기화
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter)
+    setCurrentPage(1)
+  }
 
   const getCharacterInfo = (characterName: string) => {
     return characters.find(c => c.name === characterName)
@@ -60,11 +106,48 @@ export function ScriptLogViewer({
     marginBottom: `${settings.paragraphSpacing * 0.5}rem`
   })
 
+  // OOC 로그들을 연속된 그룹으로 묶는 함수
+  const groupConsecutiveOOC = (entries: LogEntry[]) => {
+    const grouped: (LogEntry | LogEntry[])[] = []
+    let currentOOCGroup: LogEntry[] = []
+    
+    entries.forEach((entry, index) => {
+      if (entry.type === 'ooc') {
+        currentOOCGroup.push(entry)
+      } else {
+        // OOC가 아닌 로그를 만나면 현재 OOC 그룹을 완료
+        if (currentOOCGroup.length > 0) {
+          if (currentOOCGroup.length === 1) {
+            grouped.push(currentOOCGroup[0]) // 단일 OOC는 그대로
+          } else {
+            grouped.push([...currentOOCGroup]) // 다중 OOC는 배열로
+          }
+          currentOOCGroup = []
+        }
+        grouped.push(entry)
+      }
+    })
+    
+    // 마지막에 남은 OOC 그룹 처리
+    if (currentOOCGroup.length > 0) {
+      if (currentOOCGroup.length === 1) {
+        grouped.push(currentOOCGroup[0])
+      } else {
+        grouped.push([...currentOOCGroup])
+      }
+    }
+    
+    return grouped
+  }
+
+  const groupedEntries = groupConsecutiveOOC(currentEntries)
+
   const formatEntry = (entry: LogEntry, index: number) => {
     const key = `${entry.id}-${index}`
     const textStyle = getTextStyle()
     const paragraphStyle = getParagraphSpacing()
     
+    // 시스템 메시지
     if (entry.type === 'system') {
       if (entry.target) {
         // 시스템이 특정 캐릭터에게 비밀스럽게 전달하는 경우
@@ -94,31 +177,32 @@ export function ScriptLogViewer({
       }
     }
     
+    // 귓속말 - 아바타를 칸 안에 표시
     if (entry.type === 'whisper' && entry.character) {
       const characterInfo = getCharacterInfo(entry.character)
       
       return (
         <div key={key} style={paragraphStyle}>
-          <div className="flex gap-3">
-            {/* 화자 아바타 - 설정에 따라 표시/숨김 */}
-            {settings.showAvatars && (
-              characterInfo ? (
-                <Avatar className="w-7 h-7 flex-shrink-0">
-                  <AvatarImage 
-                    src={characterInfo.thumbnail || "/placeholder.svg?height=40&width=40&query=character"} 
-                    alt={entry.character}
-                  />
-                  <AvatarFallback className="bg-transparent border-0">
-                    <span className="sr-only">{entry.character.charAt(0)}</span>
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <div className="w-7 h-7 flex-shrink-0"></div>
-              )
-            )}
-            
-            <div className="flex-1 min-w-0 bg-amber-50 rounded-lg px-3 py-2">
-              <div className="italic" style={textStyle}>
+          <div className="bg-amber-50 rounded-lg px-3 py-2 italic">
+            <div className="flex items-start gap-3">
+              {settings.showAvatars && (
+                characterInfo ? (
+                  <Avatar className="w-6 h-6 flex-shrink-0">
+                    <AvatarImage 
+                      src={characterInfo.thumbnail || "/placeholder.svg?height=40&width=40&query=character"} 
+                      alt={entry.character}
+                    />
+                    <AvatarFallback className="bg-transparent border-0 text-xs">
+                      {entry.character.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="w-6 h-6 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                    {entry.character.charAt(0)}
+                  </div>
+                )
+              )}
+              <div className="flex-1 min-w-0" style={textStyle}>
                 <span className="font-bold">{entry.character}</span>
                 {entry.target && (
                   <>
@@ -134,6 +218,191 @@ export function ScriptLogViewer({
       )
     }
     
+    // 주사위 굴리기 - 성공/실패 상태 추가
+    if (entry.type === 'dice' && entry.diceResult) {
+      const { dice, result, rolls, modifier, success, difficulty } = entry.diceResult
+      return (
+        <div key={key} style={paragraphStyle}>
+          <div className="flex gap-3">
+            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+            <div className="flex-1 min-w-0 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
+              <div className="flex items-center gap-2 flex-wrap" style={textStyle}>
+                <Dice6 className="w-4 h-4 text-blue-600" />
+                <span className="font-bold">{entry.character}</span>
+                <span>굴림:</span>
+                <Badge variant="secondary" className="font-mono">
+                  {dice}
+                </Badge>
+                <span>=</span>
+                <span className="font-mono text-sm text-muted-foreground">
+                  [{rolls.join(', ')}]{modifier ? ` + ${modifier}` : ''}
+                </span>
+                <span>=</span>
+                <Badge variant="default" className="font-bold">
+                  {result}
+                </Badge>
+                {typeof success === 'boolean' && (
+                  <>
+                    <span>/</span>
+                    <Badge 
+                      variant={success ? "default" : "destructive"} 
+                      className={`font-bold ${success ? 'bg-green-600' : 'bg-red-600'}`}
+                    >
+                      {success ? '성공' : '실패'}
+                    </Badge>
+                    {difficulty && (
+                      <span className="text-xs text-muted-foreground">
+                        (목표: {difficulty})
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              {entry.content && (
+                <div className="mt-1 text-sm text-muted-foreground" style={textStyle}>
+                  {entry.content}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
+    // OOC (Out of Character) - 아이콘 제거
+    if (entry.type === 'ooc') {
+      return (
+        <div key={key} style={paragraphStyle}>
+          <div className="flex gap-3">
+            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+            <div className="flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+              <div className="flex items-center gap-2" style={textStyle}>
+                <span className="font-medium">{entry.character}</span>
+                <span className="text-muted-foreground">{entry.content}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
+    // 핸드아웃 (시노비가미) - 비밀 타입 구분
+    if (entry.type === 'handout' && entry.handoutInfo) {
+      const { title, target, category, isSecret } = entry.handoutInfo
+      
+      if (isSecret) {
+        // 비밀 핸드아웃 - 어두운 배경, 흰색 폰트
+        return (
+          <div key={key} style={paragraphStyle}>
+            <div className="flex gap-3">
+              {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+              <div className="flex-1 min-w-0 bg-gray-800 rounded-lg px-3 py-2 border border-gray-700">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2" style={textStyle}>
+                    <Lock className="w-4 h-4 text-gray-300" />
+                    <Badge variant="secondary" className="bg-gray-700 text-gray-200 border-gray-600">
+                      비밀 핸드아웃
+                    </Badge>
+                    {category && (
+                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
+                        {category}
+                      </Badge>
+                    )}
+                    <ArrowRight className="w-3 h-3 text-gray-400" />
+                    <span className="font-bold text-gray-100">{target}</span>
+                  </div>
+                  <div className="pl-6">
+                    <div className="font-medium text-gray-100 mb-1" style={textStyle}>
+                      {title}
+                    </div>
+                    <div className="text-sm text-gray-200" style={textStyle}>
+                      {entry.content}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      } else {
+        // 일반 핸드아웃 - 흰색 배경
+        return (
+          <div key={key} style={paragraphStyle}>
+            <div className="flex gap-3">
+              {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+              <div className="flex-1 min-w-0 bg-white rounded-lg px-3 py-2 border border-gray-200">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2" style={textStyle}>
+                    <FileText className="w-4 h-4 text-gray-600" />
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                      핸드아웃
+                    </Badge>
+                    {category && (
+                      <Badge variant="outline" className="text-xs">
+                        {category}
+                      </Badge>
+                    )}
+                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                    <span className="font-bold text-gray-800">{target}</span>
+                  </div>
+                  <div className="pl-6">
+                    <div className="font-medium text-gray-900 mb-1" style={textStyle}>
+                      {title}
+                    </div>
+                    <div className="text-sm text-gray-700" style={textStyle}>
+                      {entry.content}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    }
+    
+    // 데미지/힐링
+    if (entry.type === 'damage' && entry.damageInfo) {
+      const { amount, type, target } = entry.damageInfo
+      const isDamage = type === 'damage'
+      return (
+        <div key={key} style={paragraphStyle}>
+          <div className="flex gap-3">
+            {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+            <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
+              isDamage 
+                ? 'bg-red-50 border-red-200' 
+                : 'bg-green-50 border-green-200'
+            }`}>
+              <div className="flex items-center gap-2" style={textStyle}>
+                <Heart className={`w-4 h-4 ${isDamage ? 'text-red-600' : 'text-green-600'}`} />
+                <Badge variant="secondary" className={
+                  isDamage 
+                    ? 'bg-red-100 text-red-800' 
+                    : 'bg-green-100 text-green-800'
+                }>
+                  {isDamage ? '데미지' : '힐링'}
+                </Badge>
+                <span className="font-bold">{target}</span>
+                <span>{isDamage ? '받은 피해:' : '회복:'}</span>
+                <Badge variant="default" className={`font-bold ${
+                  isDamage ? 'bg-red-600' : 'bg-green-600'
+                }`}>
+                  {amount}
+                </Badge>
+              </div>
+              {entry.content && (
+                <div className="mt-1 text-sm text-muted-foreground" style={textStyle}>
+                  {entry.content}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
+    // 일반 캐릭터 대화
     if (entry.type === 'character' && entry.character) {
       const characterInfo = getCharacterInfo(entry.character)
       
@@ -168,6 +437,33 @@ export function ScriptLogViewer({
     }
     
     return null
+  }
+
+  // OOC 그룹 처리 (연속된 OOC들을 하나의 프레임에) - 아이콘 제거
+  const formatOOCGroup = (oocEntries: LogEntry[], groupIndex: number) => {
+    const key = `ooc-group-${groupIndex}`
+    const textStyle = getTextStyle()
+    const paragraphStyle = getParagraphSpacing()
+    
+    return (
+      <div key={key} style={paragraphStyle}>
+        <div className="flex gap-3">
+          {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
+          <div className="flex-1 min-w-0 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+            <div className="space-y-2">
+              {oocEntries.map((entry, index) => (
+                <div key={`${entry.id}-${index}`} className="flex items-start gap-2" style={textStyle}>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium">{entry.character}</span>
+                    <span className="ml-2 text-muted-foreground">{entry.content}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const goToPage = (page: number) => {
@@ -267,19 +563,43 @@ export function ScriptLogViewer({
 
   return (
     <div className="space-y-4">
-      {/* 로그 내용 */}
-      <div className="min-h-96">
-        <div className="space-y-0">
-          {currentEntries.map((entry, index) => formatEntry(entry, index))}
-        </div>
-      </div>
+      {/* 필터 탭 - IC가 기본, 전체가 두번째 */}
+      <Tabs value={activeFilter} onValueChange={handleFilterChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="ic">IC</TabsTrigger>
+          <TabsTrigger value="all">전체</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={activeFilter} className="mt-4">
+          {/* 로그 내용 */}
+          <div className="min-h-96">
+            <div className="space-y-0">
+              {groupedEntries.map((item, index) => {
+                if (Array.isArray(item)) {
+                  // OOC 그룹인 경우
+                  return formatOOCGroup(item, index)
+                } else {
+                  // 단일 로그인 경우
+                  return formatEntry(item, index)
+                }
+              })}
+            </div>
+            
+            {currentEntries.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                해당 필터에 표시할 내용이 없습니다.
+              </div>
+            )}
+          </div>
 
-      {/* 페이지네이션 */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1 pt-4 border-t">
-          {renderPagination()}
-        </div>
-      )}
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1 pt-4 border-t">
+              {renderPagination()}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
