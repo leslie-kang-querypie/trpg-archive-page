@@ -1,152 +1,144 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronLeft, ChevronRight, ArrowRight, Dice6, MessageSquare, Heart, FileText, Lock } from 'lucide-react'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowRight, Dice6, Heart, FileText, Lock } from 'lucide-react';
 
 export interface LogEntry {
-  id: number
-  type: 'system' | 'character' | 'whisper' | 'dice' | 'ooc' | 'damage' | 'handout'
-  character?: string
-  target?: string  // 귓속말 대상 (system도 사용 가능)
-  content: string
+  type: 'system' | 'character' | 'whisper' | 'dice' | 'ooc' | 'damage' | 'handout';
+  character?: string;
+  target?: string; // 귓속말 대상 (system도 사용 가능)
+  content: string;
   // 주사위 관련 추가 정보
   diceResult?: {
-    dice: string // 예: "1d20+5"
-    result: number
-    rolls: number[] // 실제 굴린 값들
-    modifier?: number
-    success?: boolean // 성공/실패 여부
-    difficulty?: number // 목표값
-  }
+    dice: string; // 예: "1d20+5"
+    result: number;
+    rolls: number[]; // 실제 굴린 값들
+    modifier?: number;
+    success?: boolean; // 성공/실패 여부
+    difficulty?: number; // 목표값
+  };
   // 데미지 관련 추가 정보
   damageInfo?: {
-    amount: number
-    type: string // "damage" | "heal"
-    target: string
-  }
+    amount: number;
+    type: string; // "damage" | "heal"
+    target: string;
+  };
   // 핸드아웃 관련 추가 정보
   handoutInfo?: {
-    title: string
-    target: string // 받는 플레이어
-    category?: string // "배경", "사명", "비밀" 등
-    isSecret?: boolean // 비밀 핸드아웃 여부
-  }
+    title: string;
+    target: string; // 받는 플레이어
+    category?: string; // "배경", "사명", "비밀" 등
+    isSecret?: boolean; // 비밀 핸드아웃 여부
+  };
 }
 
 interface Character {
-  name: string
-  player: string
-  class: string
-  description: string
-  thumbnail: string
+  name: string;
+  player: string;
+  class: string;
+  description: string;
+  thumbnail: string;
 }
 
 interface ReadingSettings {
-  showAvatars: boolean
-  fontSize: number
-  lineSpacing: number
-  paragraphSpacing: number
+  showAvatars: boolean;
+  fontSize: number;
+  lineSpacing: number;
+  paragraphSpacing: number;
 }
 
 interface ScriptLogViewerProps {
-  entries: LogEntry[]
-  characters: Character[]
-  settings: ReadingSettings
-  entriesPerPage?: number
+  entries: LogEntry[];
+  characters: Character[];
+  settings: ReadingSettings;
+  entriesPerPage?: number;
 }
 
-export function ScriptLogViewer({ 
-  entries, 
-  characters, 
-  settings,
-  entriesPerPage = 20 
-}: ScriptLogViewerProps) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [activeFilter, setActiveFilter] = useState('ic')
-  
+export function ScriptLogViewer({ entries, characters, settings, entriesPerPage = 20 }: ScriptLogViewerProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilter, setActiveFilter] = useState('ic');
+
   // 필터링된 엔트리들
   const getFilteredEntries = () => {
     switch (activeFilter) {
       case 'ic':
-        return entries.filter(entry => 
-          ['system', 'character', 'whisper', 'dice', 'damage', 'handout'].includes(entry.type)
-        )
+        return entries.filter(entry => ['system', 'character', 'whisper', 'dice', 'damage', 'handout'].includes(entry.type));
       case 'all':
-        return entries
+        return entries;
       default:
-        return entries
+        return entries;
     }
-  }
+  };
 
-  const filteredEntries = getFilteredEntries()
-  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage)
-  const startIndex = (currentPage - 1) * entriesPerPage
-  const endIndex = startIndex + entriesPerPage
-  const currentEntries = filteredEntries.slice(startIndex, endIndex)
+  const filteredEntries = getFilteredEntries();
+  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  const currentEntries = filteredEntries.slice(startIndex, endIndex);
 
   // 필터 변경 시 페이지 초기화
   const handleFilterChange = (filter: string) => {
-    setActiveFilter(filter)
-    setCurrentPage(1)
-  }
+    setActiveFilter(filter);
+    setCurrentPage(1);
+  };
 
   const getCharacterInfo = (characterName: string) => {
-    return characters.find(c => c.name === characterName)
-  }
+    return characters.find(c => c.name === characterName);
+  };
 
   // 동적 스타일 생성
   const getTextStyle = () => ({
     fontSize: `${settings.fontSize}px`,
-    lineHeight: settings.lineSpacing
-  })
+    lineHeight: settings.lineSpacing,
+  });
 
   const getParagraphSpacing = () => ({
-    marginBottom: `${settings.paragraphSpacing * 0.5}rem`
-  })
+    marginBottom: `${settings.paragraphSpacing * 0.5}rem`,
+  });
 
   // OOC 로그들을 연속된 그룹으로 묶는 함수
   const groupConsecutiveOOC = (entries: LogEntry[]) => {
-    const grouped: (LogEntry | LogEntry[])[] = []
-    let currentOOCGroup: LogEntry[] = []
-    
+    const grouped: (LogEntry | LogEntry[])[] = [];
+    let currentOOCGroup: LogEntry[] = [];
+
     entries.forEach((entry, index) => {
       if (entry.type === 'ooc') {
-        currentOOCGroup.push(entry)
+        currentOOCGroup.push(entry);
       } else {
         // OOC가 아닌 로그를 만나면 현재 OOC 그룹을 완료
         if (currentOOCGroup.length > 0) {
           if (currentOOCGroup.length === 1) {
-            grouped.push(currentOOCGroup[0]) // 단일 OOC는 그대로
+            grouped.push(currentOOCGroup[0]); // 단일 OOC는 그대로
           } else {
-            grouped.push([...currentOOCGroup]) // 다중 OOC는 배열로
+            grouped.push([...currentOOCGroup]); // 다중 OOC는 배열로
           }
-          currentOOCGroup = []
+          currentOOCGroup = [];
         }
-        grouped.push(entry)
+        grouped.push(entry);
       }
-    })
-    
+    });
+
     // 마지막에 남은 OOC 그룹 처리
     if (currentOOCGroup.length > 0) {
       if (currentOOCGroup.length === 1) {
-        grouped.push(currentOOCGroup[0])
+        grouped.push(currentOOCGroup[0]);
       } else {
-        grouped.push([...currentOOCGroup])
+        grouped.push([...currentOOCGroup]);
       }
     }
-    
-    return grouped
-  }
 
-  const groupedEntries = groupConsecutiveOOC(currentEntries)
+    return grouped;
+  };
+
+  const groupedEntries = groupConsecutiveOOC(currentEntries);
 
   const formatEntry = (entry: LogEntry, index: number) => {
-    const key = `${entry.id}-${index}`
-    const textStyle = getTextStyle()
-    const paragraphStyle = getParagraphSpacing()
-    
+    const key = `${entry.id}-${index}`;
+    const textStyle = getTextStyle();
+    const paragraphStyle = getParagraphSpacing();
+
     // 시스템 메시지
     if (entry.type === 'system') {
       if (entry.target) {
@@ -164,7 +156,7 @@ export function ScriptLogViewer({
               </div>
             </div>
           </div>
-        )
+        );
       } else {
         // 일반 시스템 메시지
         return (
@@ -173,35 +165,32 @@ export function ScriptLogViewer({
               {entry.content}
             </div>
           </div>
-        )
+        );
       }
     }
-    
+
     // 귓속말 - 아바타를 칸 안에 표시
     if (entry.type === 'whisper' && entry.character) {
-      const characterInfo = getCharacterInfo(entry.character)
-      
+      const characterInfo = getCharacterInfo(entry.character);
+
       return (
         <div key={key} style={paragraphStyle}>
           <div className="bg-amber-50 rounded-lg px-3 py-2 italic">
             <div className="flex items-start gap-3">
-              {settings.showAvatars && (
-                characterInfo ? (
+              {settings.showAvatars &&
+                (characterInfo ? (
                   <Avatar className="w-6 h-6 flex-shrink-0">
-                    <AvatarImage 
-                      src={characterInfo.thumbnail || "/placeholder.svg?height=40&width=40&query=character"} 
+                    <AvatarImage
+                      src={characterInfo.thumbnail || '/placeholder.svg?height=40&width=40&query=character'}
                       alt={entry.character}
                     />
-                    <AvatarFallback className="bg-transparent border-0 text-xs">
-                      {entry.character.charAt(0)}
-                    </AvatarFallback>
+                    <AvatarFallback className="bg-transparent border-0 text-xs">{entry.character.charAt(0)}</AvatarFallback>
                   </Avatar>
                 ) : (
                   <div className="w-6 h-6 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center text-xs">
                     {entry.character.charAt(0)}
                   </div>
-                )
-              )}
+                ))}
               <div className="flex-1 min-w-0" style={textStyle}>
                 <span className="font-bold">{entry.character}</span>
                 {entry.target && (
@@ -215,12 +204,12 @@ export function ScriptLogViewer({
             </div>
           </div>
         </div>
-      )
+      );
     }
-    
+
     // 주사위 굴리기 - 성공/실패 상태 추가
     if (entry.type === 'dice' && entry.diceResult) {
-      const { dice, result, rolls, modifier, success, difficulty } = entry.diceResult
+      const { dice, result, rolls, modifier, success, difficulty } = entry.diceResult;
       return (
         <div key={key} style={paragraphStyle}>
           <div className="flex gap-3">
@@ -244,17 +233,13 @@ export function ScriptLogViewer({
                 {typeof success === 'boolean' && (
                   <>
                     <span>/</span>
-                    <Badge 
-                      variant={success ? "default" : "destructive"} 
+                    <Badge
+                      variant={success ? 'default' : 'destructive'}
                       className={`font-bold ${success ? 'bg-green-600' : 'bg-red-600'}`}
                     >
                       {success ? '성공' : '실패'}
                     </Badge>
-                    {difficulty && (
-                      <span className="text-xs text-muted-foreground">
-                        (목표: {difficulty})
-                      </span>
-                    )}
+                    {difficulty && <span className="text-xs text-muted-foreground">(목표: {difficulty})</span>}
                   </>
                 )}
               </div>
@@ -266,9 +251,9 @@ export function ScriptLogViewer({
             </div>
           </div>
         </div>
-      )
+      );
     }
-    
+
     // OOC (Out of Character) - 아이콘 제거
     if (entry.type === 'ooc') {
       return (
@@ -283,13 +268,13 @@ export function ScriptLogViewer({
             </div>
           </div>
         </div>
-      )
+      );
     }
-    
+
     // 핸드아웃 (시노비가미) - 비밀 타입 구분
     if (entry.type === 'handout' && entry.handoutInfo) {
-      const { title, target, category, isSecret } = entry.handoutInfo
-      
+      const { title, target, category, isSecret } = entry.handoutInfo;
+
       if (isSecret) {
         // 비밀 핸드아웃 - 어두운 배경, 흰색 폰트
         return (
@@ -323,7 +308,7 @@ export function ScriptLogViewer({
               </div>
             </div>
           </div>
-        )
+        );
       } else {
         // 일반 핸드아웃 - 흰색 배경
         return (
@@ -357,37 +342,31 @@ export function ScriptLogViewer({
               </div>
             </div>
           </div>
-        )
+        );
       }
     }
-    
+
     // 데미지/힐링
     if (entry.type === 'damage' && entry.damageInfo) {
-      const { amount, type, target } = entry.damageInfo
-      const isDamage = type === 'damage'
+      const { amount, type, target } = entry.damageInfo;
+      const isDamage = type === 'damage';
       return (
         <div key={key} style={paragraphStyle}>
           <div className="flex gap-3">
             {settings.showAvatars && <div className="w-7 h-7 flex-shrink-0"></div>}
-            <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
-              isDamage 
-                ? 'bg-red-50 border-red-200' 
-                : 'bg-green-50 border-green-200'
-            }`}>
+            <div
+              className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
+                isDamage ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+              }`}
+            >
               <div className="flex items-center gap-2" style={textStyle}>
                 <Heart className={`w-4 h-4 ${isDamage ? 'text-red-600' : 'text-green-600'}`} />
-                <Badge variant="secondary" className={
-                  isDamage 
-                    ? 'bg-red-100 text-red-800' 
-                    : 'bg-green-100 text-green-800'
-                }>
+                <Badge variant="secondary" className={isDamage ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}>
                   {isDamage ? '데미지' : '힐링'}
                 </Badge>
                 <span className="font-bold">{target}</span>
                 <span>{isDamage ? '받은 피해:' : '회복:'}</span>
-                <Badge variant="default" className={`font-bold ${
-                  isDamage ? 'bg-red-600' : 'bg-green-600'
-                }`}>
+                <Badge variant="default" className={`font-bold ${isDamage ? 'bg-red-600' : 'bg-green-600'}`}>
                   {amount}
                 </Badge>
               </div>
@@ -399,33 +378,38 @@ export function ScriptLogViewer({
             </div>
           </div>
         </div>
-      )
+      );
     }
-    
+
     // 일반 캐릭터 대화
     if (entry.type === 'character' && entry.character) {
-      const characterInfo = getCharacterInfo(entry.character)
-      
+      const characterInfo = getCharacterInfo(entry.character);
+
       return (
         <div key={key} className="flex gap-3" style={paragraphStyle}>
           {/* 일반 캐릭터 - 설정에 따라 아바타 표시/숨김 */}
-          {settings.showAvatars && (
-            characterInfo ? (
+          {settings.showAvatars &&
+            (characterInfo ? (
               <Avatar className="w-7 h-7 flex-shrink-0">
-                <AvatarImage 
-                  src={characterInfo.thumbnail || "/placeholder.svg?height=40&width=40&query=character"} 
+                <AvatarImage
+                  src={characterInfo.thumbnail || '/placeholder.svg?height=40&width=40&query=character'}
                   alt={entry.character}
+                  onError={(e) => {
+                    console.log(`Avatar failed to load for ${entry.character}:`, characterInfo.thumbnail);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
-                <AvatarFallback className="bg-transparent border-0">
-                  <span className="sr-only">{entry.character.charAt(0)}</span>
+                <AvatarFallback className="bg-gray-200 text-xs font-medium">
+                  {entry.character?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              // NPC의 경우 아바타 공간만 확보 (투명)
-              <div className="w-7 h-7 flex-shrink-0"></div>
-            )
-          )}
-          
+              // NPC의 경우 기본 아바타 표시
+              <div className="w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700">
+                {entry.character?.charAt(0) || '?'}
+              </div>
+            ))}
+
           <div className="flex-1 min-w-0">
             <div style={textStyle}>
               <span className="font-bold">{entry.character}</span>
@@ -433,18 +417,18 @@ export function ScriptLogViewer({
             </div>
           </div>
         </div>
-      )
+      );
     }
-    
-    return null
-  }
+
+    return null;
+  };
 
   // OOC 그룹 처리 (연속된 OOC들을 하나의 프레임에) - 아이콘 제거
   const formatOOCGroup = (oocEntries: LogEntry[], groupIndex: number) => {
-    const key = `ooc-group-${groupIndex}`
-    const textStyle = getTextStyle()
-    const paragraphStyle = getParagraphSpacing()
-    
+    const key = `ooc-group-${groupIndex}`;
+    const textStyle = getTextStyle();
+    const paragraphStyle = getParagraphSpacing();
+
     return (
       <div key={key} style={paragraphStyle}>
         <div className="flex gap-3">
@@ -463,86 +447,78 @@ export function ScriptLogViewer({
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
-  }
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null
+    if (totalPages <= 1) return null;
 
-    const pages = []
-    const showPages = 5 // 보여줄 페이지 수
-    
-    let startPage = Math.max(1, currentPage - Math.floor(showPages / 2))
-    let endPage = Math.min(totalPages, startPage + showPages - 1)
-    
+    const pages = [];
+    const showPages = 5; // 보여줄 페이지 수
+
+    let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
+    let endPage = Math.min(totalPages, startPage + showPages - 1);
+
     // 끝에서 시작점 조정
     if (endPage - startPage + 1 < showPages) {
-      startPage = Math.max(1, endPage - showPages + 1)
+      startPage = Math.max(1, endPage - showPages + 1);
     }
 
     // 이전 버튼
     pages.push(
-      <Button
-        key="prev"
-        variant="outline"
-        size="sm"
-        onClick={() => goToPage(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
+      <Button key="prev" variant="outline" size="sm" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
         &lt;
-      </Button>
-    )
+      </Button>,
+    );
 
     // 첫 페이지
     if (startPage > 1) {
       pages.push(
-        <Button
-          key={1}
-          variant={1 === currentPage ? "default" : "outline"}
-          size="sm"
-          onClick={() => goToPage(1)}
-        >
+        <Button key={1} variant={1 === currentPage ? 'default' : 'outline'} size="sm" onClick={() => goToPage(1)}>
           1
-        </Button>
-      )
+        </Button>,
+      );
       if (startPage > 2) {
-        pages.push(<span key="dots1" className="px-2 text-muted-foreground">...</span>)
+        pages.push(
+          <span key="dots1" className="px-2 text-muted-foreground">
+            ...
+          </span>,
+        );
       }
     }
 
     // 중간 페이지들
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
-        <Button
-          key={i}
-          variant={i === currentPage ? "default" : "outline"}
-          size="sm"
-          onClick={() => goToPage(i)}
-        >
+        <Button key={i} variant={i === currentPage ? 'default' : 'outline'} size="sm" onClick={() => goToPage(i)}>
           {i}
-        </Button>
-      )
+        </Button>,
+      );
     }
 
     // 마지막 페이지
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        pages.push(<span key="dots2" className="px-2 text-muted-foreground">...</span>)
+        pages.push(
+          <span key="dots2" className="px-2 text-muted-foreground">
+            ...
+          </span>,
+        );
       }
       pages.push(
         <Button
           key={totalPages}
-          variant={totalPages === currentPage ? "default" : "outline"}
+          variant={totalPages === currentPage ? 'default' : 'outline'}
           size="sm"
           onClick={() => goToPage(totalPages)}
         >
           {totalPages}
-        </Button>
-      )
+        </Button>,
+      );
     }
 
     // 다음 버튼
@@ -555,11 +531,11 @@ export function ScriptLogViewer({
         disabled={currentPage === totalPages}
       >
         &gt;
-      </Button>
-    )
+      </Button>,
+    );
 
-    return pages
-  }
+    return pages;
+  };
 
   return (
     <div className="space-y-4">
@@ -569,7 +545,7 @@ export function ScriptLogViewer({
           <TabsTrigger value="ic">IC</TabsTrigger>
           <TabsTrigger value="all">전체</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value={activeFilter} className="mt-4">
           {/* 로그 내용 */}
           <div className="min-h-96">
@@ -577,29 +553,25 @@ export function ScriptLogViewer({
               {groupedEntries.map((item, index) => {
                 if (Array.isArray(item)) {
                   // OOC 그룹인 경우
-                  return formatOOCGroup(item, index)
+                  return formatOOCGroup(item, index);
                 } else {
                   // 단일 로그인 경우
-                  return formatEntry(item, index)
+                  return formatEntry(item, index);
                 }
               })}
             </div>
-            
+
             {currentEntries.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                해당 필터에 표시할 내용이 없습니다.
-              </div>
+              <div className="text-center py-12 text-muted-foreground">해당 필터에 표시할 내용이 없습니다.</div>
             )}
           </div>
 
           {/* 페이지네이션 */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1 pt-4 border-t">
-              {renderPagination()}
-            </div>
+            <div className="flex items-center justify-center gap-1 pt-4 border-t">{renderPagination()}</div>
           )}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
