@@ -59,6 +59,8 @@ const messageTypes = [
   { value: 'character', label: '캐릭터' },
   { value: 'system', label: '시스템' },
   { value: 'ooc', label: 'OOC' },
+  { value: 'whisper', label: '귓속말' },
+  { value: 'delete', label: '삭제' },
 ];
 
 export default function ParsePage() {
@@ -361,17 +363,41 @@ link.click();`;
   };
 
   const updateSenderType = (sender: string, type: string) => {
-    setSenderMappings(prev =>
-      prev.map(mapping =>
-        mapping.sender === sender ? { ...mapping, type } : mapping
-      )
-    );
+    if (type === 'delete') {
+      setSenderMappings(prev =>
+        prev.map(mapping =>
+          mapping.sender === sender ? { ...mapping, markedForDeletion: true } : mapping
+        )
+      );
+    } else {
+      setSenderMappings(prev =>
+        prev.map(mapping =>
+          mapping.sender === sender ? { ...mapping, type, markedForDeletion: false } : mapping
+        )
+      );
+    }
   };
 
   const updateSenderImage = (sender: string, imageFile: string) => {
     setSenderMappings(prev =>
       prev.map(mapping =>
         mapping.sender === sender ? { ...mapping, imageFile } : mapping
+      )
+    );
+  };
+
+  const updateDisplayName = (sender: string, displayName: string) => {
+    setSenderMappings(prev =>
+      prev.map(mapping =>
+        mapping.sender === sender ? { ...mapping, displayName } : mapping
+      )
+    );
+  };
+
+  const updateWhisperInfo = (sender: string, whisperFrom: string, whisperTo: string) => {
+    setSenderMappings(prev =>
+      prev.map(mapping =>
+        mapping.sender === sender ? { ...mapping, whisperFrom, whisperTo } : mapping
       )
     );
   };
@@ -396,39 +422,54 @@ link.click();`;
   };
 
   const applyMappings = () => {
-    const mappingDict = senderMappings.reduce(
+    const filteredMappings = senderMappings.filter(m => !m.markedForDeletion);
+    const mappingDict = filteredMappings.reduce(
       (acc, mapping) => {
-        acc[mapping.sender] = mapping.type;
+        acc[mapping.sender] = {
+          type: mapping.type,
+          displayName: mapping.displayName || mapping.sender,
+          whisperFrom: mapping.whisperFrom,
+          whisperTo: mapping.whisperTo,
+        };
         return acc;
       },
-      {} as { [key: string]: string }
+      {} as { [key: string]: any }
     );
 
-    const enhancedData = parsedData.map(message => {
-      let sender = message.sender || 'SYSTEM';
+    const enhancedData = parsedData
+      .filter(message => {
+        const mapping = senderMappings.find(m => m.sender === message.sender);
+        return !mapping?.markedForDeletion;
+      })
+      .map(message => {
+        let sender = message.sender || 'SYSTEM';
+        const mapping = mappingDict[sender];
 
-      // desc 메시지는 무조건 SYSTEM으로
-      if (
-        (message as any).messageType &&
-        (message as any).messageType.includes('desc')
-      ) {
-        sender = 'SYSTEM';
-      }
-
-      // 귓속말 처리
-      if ((message as any).isWhisper) {
-        // Player로 매핑된 귓속말은 해당 발신자로 처리
-        if (sender === 'Player' && message.content) {
-          // 실제 플레이어명을 찾을 수 있다면 여기서 처리
+        // desc 메시지는 무조건 SYSTEM으로
+        if (
+          (message as any).messageType &&
+          (message as any).messageType.includes('desc')
+        ) {
+          sender = 'SYSTEM';
         }
-      }
 
-      return {
-        ...message,
-        sender: sender,
-        type: mappingDict[sender] || 'system', // 기본값을 system으로
-      };
-    });
+        // 귓속말 처리
+        if (mapping?.type === 'whisper') {
+          return {
+            ...message,
+            sender: mapping.displayName || sender,
+            type: 'whisper',
+            whisperFrom: mapping.whisperFrom,
+            whisperTo: mapping.whisperTo,
+          };
+        }
+
+        return {
+          ...message,
+          sender: mapping?.displayName || sender,
+          type: mapping?.type || 'system',
+        };
+      });
 
     setParsedData(enhancedData);
     setCurrentTab('result');
@@ -491,9 +532,9 @@ link.click();`;
 
   const defaultReadingSettings = {
     showAvatars: true,
-    fontSize: 16,
+    fontSize: 14,
     lineSpacing: 1.5,
-    paragraphSpacing: 1.2,
+    paragraphSpacing: 2,
   };
 
   const saveMappingPreset = () => {
@@ -791,7 +832,7 @@ link.click();`;
 
                   <div className='grid gap-3'>
                     {senderMappings.map(mapping => (
-                      <div key={mapping.sender} className='border rounded-lg'>
+                      <div key={mapping.sender} className={`border rounded-lg ${mapping.markedForDeletion ? 'opacity-50 bg-red-50 border-red-200' : ''}`}>
                         <div className='flex items-start gap-3 p-3'>
                           <div className='flex items-center gap-3 flex-1'>
                             {/* 아바타 미리보기 */}
@@ -841,7 +882,7 @@ link.click();`;
 
                           <div className='flex flex-col gap-2'>
                             <Select
-                              value={mapping.type}
+                              value={mapping.markedForDeletion ? 'delete' : mapping.type}
                               onValueChange={value =>
                                 updateSenderType(mapping.sender, value)
                               }
@@ -854,9 +895,9 @@ link.click();`;
                                   <SelectItem
                                     key={type.value}
                                     value={type.value}
+                                    className={type.value === 'delete' ? 'text-red-600' : ''}
                                   >
                                     <div className='flex items-center gap-2'>
-                                      <span>{type.icon}</span>
                                       {type.label}
                                     </div>
                                   </SelectItem>
@@ -864,44 +905,104 @@ link.click();`;
                               </SelectContent>
                             </Select>
 
-                            {mapping.type === 'character' && (
-                              <div className='flex flex-col gap-1'>
-                                <Label className='text-xs text-muted-foreground'>
-                                  이미지 파일명
-                                </Label>
-                                <Input
-                                  placeholder='character-name.png'
-                                  value={mapping.imageFile || ''}
-                                  onChange={e =>
-                                    updateSenderImage(
-                                      mapping.sender,
-                                      e.target.value
-                                    )
-                                  }
-                                  className='w-48 text-sm'
-                                />
-                                <div className='text-xs text-muted-foreground'>
-                                  public/assets/ 폴더 기준
+                            {!mapping.markedForDeletion && (
+                              <>
+                                <div className='flex flex-col gap-1'>
+                                  <Label className='text-xs text-muted-foreground'>
+                                    표시 이름
+                                  </Label>
+                                  <Input
+                                    placeholder={mapping.sender}
+                                    value={mapping.displayName || ''}
+                                    onChange={e =>
+                                      updateDisplayName(
+                                        mapping.sender,
+                                        e.target.value
+                                      )
+                                    }
+                                    className='w-48 text-sm'
+                                  />
                                 </div>
-                                {mapping.avatarUrl && (
-                                  <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    className='text-xs h-6 px-2 justify-start'
-                                    onClick={() => {
-                                      if (mapping.avatarUrl) {
-                                        navigator.clipboard.writeText(
-                                          mapping.avatarUrl
-                                        );
-                                        alert('원본 URL이 복사되었습니다!');
-                                      }
-                                    }}
-                                  >
-                                    원본 URL 복사
-                                  </Button>
+
+                                {mapping.type === 'whisper' && (
+                                  <>
+                                    <div className='flex flex-col gap-1'>
+                                      <Label className='text-xs text-muted-foreground'>
+                                        발신자
+                                      </Label>
+                                      <Input
+                                        placeholder='누가 보냈나요?'
+                                        value={mapping.whisperFrom || ''}
+                                        onChange={e =>
+                                          updateWhisperInfo(
+                                            mapping.sender,
+                                            e.target.value,
+                                            mapping.whisperTo || ''
+                                          )
+                                        }
+                                        className='w-48 text-sm'
+                                      />
+                                    </div>
+                                    <div className='flex flex-col gap-1'>
+                                      <Label className='text-xs text-muted-foreground'>
+                                        수신자
+                                      </Label>
+                                      <Input
+                                        placeholder='누구에게 보냈나요?'
+                                        value={mapping.whisperTo || ''}
+                                        onChange={e =>
+                                          updateWhisperInfo(
+                                            mapping.sender,
+                                            mapping.whisperFrom || '',
+                                            e.target.value
+                                          )
+                                        }
+                                        className='w-48 text-sm'
+                                      />
+                                    </div>
+                                  </>
                                 )}
-                              </div>
+
+                                {mapping.type === 'character' && (
+                                  <div className='flex flex-col gap-1'>
+                                    <Label className='text-xs text-muted-foreground'>
+                                      이미지 파일명
+                                    </Label>
+                                    <Input
+                                      placeholder='character-name.png'
+                                      value={mapping.imageFile || ''}
+                                      onChange={e =>
+                                        updateSenderImage(
+                                          mapping.sender,
+                                          e.target.value
+                                        )
+                                      }
+                                      className='w-48 text-sm'
+                                    />
+                                    <div className='text-xs text-muted-foreground'>
+                                      public/assets/ 폴더 기준
+                                    </div>
+                                    {mapping.avatarUrl && (
+                                      <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='sm'
+                                        className='text-xs h-6 px-2 justify-start'
+                                        onClick={() => {
+                                          if (mapping.avatarUrl) {
+                                            navigator.clipboard.writeText(
+                                              mapping.avatarUrl
+                                            );
+                                            alert('원본 URL이 복사되었습니다!');
+                                          }
+                                        }}
+                                      >
+                                        원본 URL 복사
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>

@@ -120,41 +120,61 @@ export function ScriptLogViewer({
     marginBottom: `${settings.paragraphSpacing * 0.5}rem`,
   });
 
-  // OOC 로그들을 연속된 그룹으로 묶는 함수
-  const groupConsecutiveOOC = (entries: LogEntry[]) => {
+  // OOC, System, Character 로그들을 연속된 그룹으로 묶는 함수
+  const groupConsecutiveEntries = (entries: LogEntry[]) => {
     const grouped: (LogEntry | LogEntry[])[] = [];
-    let currentOOCGroup: LogEntry[] = [];
+    let currentGroup: LogEntry[] = [];
+    let currentGroupType: string | null = null;
+    let currentGroupCharacter: string | null = null;
+
+    const finishCurrentGroup = () => {
+      if (currentGroup.length > 0) {
+        if (currentGroup.length === 1) {
+          grouped.push(currentGroup[0]);
+        } else {
+          grouped.push([...currentGroup]);
+        }
+        currentGroup = [];
+        currentGroupType = null;
+        currentGroupCharacter = null;
+      }
+    };
 
     entries.forEach((entry, index) => {
-      if (entry.type === 'ooc') {
-        currentOOCGroup.push(entry);
-      } else {
-        // OOC가 아닌 로그를 만나면 현재 OOC 그룹을 완료
-        if (currentOOCGroup.length > 0) {
-          if (currentOOCGroup.length === 1) {
-            grouped.push(currentOOCGroup[0]); // 단일 OOC는 그대로
-          } else {
-            grouped.push([...currentOOCGroup]); // 다중 OOC는 배열로
-          }
-          currentOOCGroup = [];
+      const shouldGroup = 
+        entry.type === 'ooc' || 
+        entry.type === 'system' || 
+        entry.type === 'character';
+
+      if (shouldGroup) {
+        const isSameGroup = 
+          currentGroupType === entry.type &&
+          (entry.type !== 'character' || currentGroupCharacter === entry.character);
+
+        if (isSameGroup) {
+          // 같은 그룹이면 추가
+          currentGroup.push(entry);
+        } else {
+          // 다른 그룹이면 현재 그룹 완료 후 새 그룹 시작
+          finishCurrentGroup();
+          currentGroup = [entry];
+          currentGroupType = entry.type;
+          currentGroupCharacter = entry.type === 'character' ? entry.character : null;
         }
+      } else {
+        // 그룹화하지 않는 타입이면 현재 그룹 완료 후 단일로 추가
+        finishCurrentGroup();
         grouped.push(entry);
       }
     });
 
-    // 마지막에 남은 OOC 그룹 처리
-    if (currentOOCGroup.length > 0) {
-      if (currentOOCGroup.length === 1) {
-        grouped.push(currentOOCGroup[0]);
-      } else {
-        grouped.push([...currentOOCGroup]);
-      }
-    }
+    // 마지막에 남은 그룹 처리
+    finishCurrentGroup();
 
     return grouped;
   };
 
-  const groupedEntries = groupConsecutiveOOC(currentEntries);
+  const groupedEntries = groupConsecutiveEntries(currentEntries);
 
   const formatEntry = (entry: LogEntry, index: number) => {
     const key = `${entry.id}-${index}`;
@@ -517,7 +537,7 @@ export function ScriptLogViewer({
     return null;
   };
 
-  // OOC 그룹 처리 (연속된 OOC들을 하나의 프레임에) - 아이콘 제거
+  // OOC 그룹 처리 (연속된 OOC들을 하나의 프레임에)
   const formatOOCGroup = (oocEntries: LogEntry[], groupIndex: number) => {
     const key = `ooc-group-${groupIndex}`;
     const textStyle = getTextStyle();
@@ -546,6 +566,86 @@ export function ScriptLogViewer({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // System 그룹 처리 (연속된 System들을 하나의 문단으로)
+  const formatSystemGroup = (systemEntries: LogEntry[], groupIndex: number) => {
+    const key = `system-group-${groupIndex}`;
+    const textStyle = getTextStyle();
+    const paragraphStyle = getParagraphSpacing();
+
+    return (
+      <div key={key} style={{
+        ...paragraphStyle,
+        marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
+      }}>
+        <div className='text-muted-foreground' style={textStyle}>
+          {systemEntries.map((entry, index) => (
+            <div key={`${entry.id}-${index}`}>
+              {entry.content}
+              {index < systemEntries.length - 1 && <br />}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Character 그룹 처리 (같은 캐릭터의 연속 대사들을 하나로)
+  const formatCharacterGroup = (characterEntries: LogEntry[], groupIndex: number) => {
+    const key = `character-group-${groupIndex}`;
+    const textStyle = getTextStyle();
+    const paragraphStyle = getParagraphSpacing();
+    const firstEntry = characterEntries[0];
+    const characterInfo = getCharacterInfo(firstEntry.character!);
+
+    return (
+      <div key={key} className='flex gap-3' style={paragraphStyle}>
+        {/* 아바타 */}
+        {settings.showAvatars && (
+          characterInfo ? (
+            <Avatar className='w-7 h-7 flex-shrink-0'>
+              <AvatarImage
+                src={
+                  characterInfo.thumbnail ||
+                  '/placeholder.svg?height=40&width=40&query=character'
+                }
+                alt={firstEntry.character}
+                onError={e => {
+                  console.log(
+                    `Avatar failed to load for ${firstEntry.character}:`,
+                    characterInfo.thumbnail
+                  );
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <AvatarFallback className='bg-gray-200 text-xs font-medium'>
+                {firstEntry.character?.charAt(0) || '?'}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            // NPC의 경우 기본 아바타 표시
+            <div className='w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700'>
+              {firstEntry.character?.charAt(0) || '?'}
+            </div>
+          )
+        )}
+
+        <div className='flex-1 min-w-0'>
+          <div style={textStyle}>
+            <span className='font-bold'>{firstEntry.character}</span>
+            <span className='ml-4'>
+              {characterEntries.map((entry, index) => (
+                <span key={`${entry.id}-${index}`}>
+                  {entry.content}
+                  {index < characterEntries.length - 1 && <br />}
+                </span>
+              ))}
+            </span>
           </div>
         </div>
       </div>
@@ -674,8 +774,16 @@ export function ScriptLogViewer({
             <div className='space-y-0'>
               {groupedEntries.map((item, index) => {
                 if (Array.isArray(item)) {
-                  // OOC 그룹인 경우
-                  return formatOOCGroup(item, index);
+                  // 그룹인 경우 - OOC, System, Character 타입 확인
+                  const firstEntry = item[0];
+                  if (firstEntry.type === 'ooc') {
+                    return formatOOCGroup(item, index);
+                  } else if (firstEntry.type === 'system') {
+                    return formatSystemGroup(item, index);
+                  } else if (firstEntry.type === 'character') {
+                    return formatCharacterGroup(item, index);
+                  }
+                  return null;
                 } else {
                   // 단일 로그인 경우
                   return formatEntry(item, index);
