@@ -535,6 +535,7 @@ link.click();`;
     fontSize: 14,
     lineSpacing: 1.5,
     paragraphSpacing: 2,
+    centerSystemMessages: false,
   };
 
   const saveMappingPreset = () => {

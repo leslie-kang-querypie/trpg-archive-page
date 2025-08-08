@@ -55,6 +55,7 @@ interface ReadingSettings {
   fontSize: number;
   lineSpacing: number;
   paragraphSpacing: number;
+  centerSystemMessages: boolean;
 }
 
 interface ScriptLogViewerProps {
@@ -211,7 +212,12 @@ export function ScriptLogViewer({
               marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
             }}
           >
-            <div className='text-muted-foreground' style={textStyle}>
+            <div 
+              className={`text-muted-foreground ${
+                settings.centerSystemMessages ? 'text-center' : ''
+              }`} 
+              style={textStyle}
+            >
               {entry.content}
             </div>
           </div>
@@ -583,7 +589,12 @@ export function ScriptLogViewer({
         ...paragraphStyle,
         marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
       }}>
-        <div className='text-muted-foreground' style={textStyle}>
+        <div 
+          className={`text-muted-foreground ${
+            settings.centerSystemMessages ? 'text-center' : ''
+          }`} 
+          style={textStyle}
+        >
           {systemEntries.map((entry, index) => (
             <div key={`${entry.id}-${index}`}>
               {entry.content}

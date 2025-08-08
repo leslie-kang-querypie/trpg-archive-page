@@ -1,4 +1,4 @@
-import { User, Type, Space } from 'lucide-react';
+import { User, Type, Space, AlignCenter } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,7 @@ interface ReadingSettings {
   fontSize: number;
   lineSpacing: number;
   paragraphSpacing: number;
+  centerSystemMessages: boolean;
 }
 
 interface ReadingSettingsModalProps {
@@ -151,6 +152,21 @@ export function ReadingSettingsModal({
               <span>보통</span>
               <span>넓게</span>
             </div>
+          </div>
+
+          {/* 시스템 메시지 중앙정렬 */}
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <AlignCenter className='w-4 h-4 text-muted-foreground' />
+              <Label htmlFor='center-system-toggle' className='text-sm font-medium'>
+                시스템 메시지 중앙정렬
+              </Label>
+            </div>
+            <Switch
+              id='center-system-toggle'
+              checked={settings.centerSystemMessages}
+              onCheckedChange={checked => updateSetting('centerSystemMessages', checked)}
+            />
           </div>
         </div>
 
