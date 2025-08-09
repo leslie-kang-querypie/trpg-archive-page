@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { Post, SubPost } from '@/lib/types';
+import { Post } from '@/lib/types';
+import { SubPost } from '@/types';
 
 export async function GET(
   request: Request,

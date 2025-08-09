@@ -14,7 +14,7 @@ import { useState } from 'react';
 
 import { Header } from '@/components/header';
 import { ScriptLogViewer } from '@/components/script-log-viewer';
-import { LogEntry } from '@/types';
+import { LogEntry, ParsedMessage, SenderMapping, MESSAGE_TYPES } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,36 +33,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
-interface ParsedMessage {
-  time: string;
-  sender: string;
-  content: string;
-  type?: string;
-}
-
-interface SenderMapping {
-  sender: string;
-  type: string;
-  count: number;
-  imageFile?: string;
-  avatarUrl?: string;
-  expanded?: boolean;
-  displayName?: string; // 수정 가능한 표시명
-  whisperFrom?: string; // 귓속말 발신자
-  whisperTo?: string; // 귓속말 수신자
-  markedForDeletion?: boolean; // 삭제 표시
-}
-
-const messageTypes = [
-  { value: 'character', label: '캐릭터' },
-  { value: 'system', label: '시스템' },
-  { value: 'ooc', label: 'OOC' },
-  { value: 'whisper', label: '귓속말' },
-  { value: 'delete', label: '삭제' },
-];
 
 export default function ParsePage() {
   const [rawData, setRawData] = useState('');
@@ -70,6 +44,7 @@ export default function ParsePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [senderMappings, setSenderMappings] = useState<SenderMapping[]>([]);
   const [currentTab, setCurrentTab] = useState('script');
+  const [showOOC, setShowOOC] = useState(false);
 
   const originalScript = `// Roll20 메시지 파싱 개선 버전
 const messages = Array.from(document.querySelectorAll('.message'));
@@ -895,7 +870,7 @@ link.click();`;
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {messageTypes.map(type => (
+                                {MESSAGE_TYPES.map(type => (
                                   <SelectItem
                                     key={type.value}
                                     value={type.value}
@@ -1085,13 +1060,28 @@ link.click();`;
                         명의 캐릭터
                       </Badge>
                     </div>
-                    <Button
-                      onClick={downloadParsedData}
-                      className='flex items-center gap-2'
-                    >
-                      <Download className='h-4 w-4' />
-                      JSON 다운로드
-                    </Button>
+                    <div className='flex items-center gap-2'>
+                      <div className='flex items-center gap-3'>
+                        <Label htmlFor='ooc-toggle-result' className='text-sm font-medium'>
+                          사담
+                        </Label>
+                        <Switch
+                          id='ooc-toggle-result'
+                          checked={showOOC}
+                          onCheckedChange={setShowOOC}
+                        />
+                        <span className='text-xs text-muted-foreground'>
+                          {showOOC ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={downloadParsedData}
+                        className='flex items-center gap-2'
+                      >
+                        <Download className='h-4 w-4' />
+                        JSON 다운로드
+                      </Button>
+                    </div>
                   </div>
 
                   <div className='space-y-4'>
@@ -1131,6 +1121,7 @@ link.click();`;
                         characters={getCharactersFromData()}
                         settings={defaultReadingSettings}
                         entriesPerPage={50}
+                        showOOC={showOOC}
                       />
                     </div>
                   </div>

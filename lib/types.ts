@@ -1,4 +1,4 @@
-import { LogEntry, Character } from '@/types';
+import { Character, SubPost } from '@/types';
 
 export interface SessionInfo {
   rule: string;
@@ -24,9 +24,3 @@ export interface Post {
   subPosts: SubPost[];
 }
 
-export interface SubPost {
-  id: string;
-  title: string;
-  description: string;
-  content: LogEntry[];
-}
