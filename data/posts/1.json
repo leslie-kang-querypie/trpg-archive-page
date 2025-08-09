@@ -1,0 +1,43 @@
+{
+  "id": 1,
+  "title": "시노비가미 - 벚꽃이 지는 밤에",
+  "summary": "현대 일본을 배경으로 한 닌자들의 이야기. 숨겨진 진실을 찾아 나서는 모험",
+  "thumbnail": "/fantasy-dungeon-goblins.png",
+  "tags": ["시노비가미", "현대", "닌자"],
+  "date": "2024-01-15",
+  "views": 245,
+  "password": "1234",
+  "isPrivate": true,
+  "sessionInfo": {
+    "rule": "시노비가미 RPG",
+    "scenario": "벚꽃이 지는 밤에",
+    "author": "자작 시나리오",
+    "playerCount": 3,
+    "overview": "현대 일본의 어느 도시에서 벌어지는 닌자들의 이야기. 각자의 사명을 가진 닌자들이 하나의 사건에 얽히게 되면서 시작되는 모험",
+    "characters": [
+      {
+        "name": "카게마루",
+        "player": "타로",
+        "class": "하급닌자",
+        "description": "전통적인 닌자 가문 출신. 조용하고 신중한 성격으로 정보 수집에 능하다.",
+        "thumbnail": "/character-elf-rogue.png"
+      },
+      {
+        "name": "사쿠라",
+        "player": "하나코",
+        "class": "쿠노이치",
+        "description": "현대적인 감각을 가진 여성 닌자. 사교적이고 적응력이 뛰어나다.",
+        "thumbnail": "/character-human-bard.png"
+      },
+      {
+        "name": "류진",
+        "player": "지로",
+        "class": "상급닌자",
+        "description": "경험 많은 베테랑 닌자. 과묵하지만 동료를 아끼는 마음이 깊다.",
+        "thumbnail": "/character-dwarf-fighter.png"
+      }
+    ],
+    "highlight": "벚꽃이 흩날리는 봄밤, 세 명의 닌자가 도쿄의 네온사인 아래에서 만났다. 각자 다른 사명을 가지고 있었지만, 운명은 그들을 하나의 길로 이끌었다. 현대와 전통이 교차하는 이 도시에서, 그들만이 알 수 있는 진실이 기다리고 있었다."
+  },
+  "subPostIds": ["1", "2"]
+}

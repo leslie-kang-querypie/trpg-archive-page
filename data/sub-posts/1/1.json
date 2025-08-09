@@ -1,0 +1,206 @@
+{
+  "id": "session-1",
+  "title": "1세션: 첫 만남",
+  "description": "세 명의 닌자가 처음 만나 사건의 실마리를 찾아가는 이야기",
+  "content": [
+    {
+      "id": 1,
+      "type": "system",
+      "content": "도쿄 시부야의 한 카페. 벚꽃이 흩날리는 봄밤, 평범해 보이는 카페에 세 명의 특별한 손님이 모였다."
+    },
+    {
+      "id": 2,
+      "type": "character",
+      "character": "카게마루",
+      "content": "조용히 카페 구석 자리에 앉아 다른 두 사람을 관찰한다. \"...예상했던 대로군.\""
+    },
+    {
+      "id": 3,
+      "type": "ooc",
+      "character": "타로",
+      "content": "카게마루는 어떤 느낌으로 앉아있을까요? 경계하는 느낌인가요?"
+    },
+    {
+      "id": 4,
+      "type": "ooc",
+      "character": "GM",
+      "content": "네, 카게마루는 항상 주변을 경계하는 습관이 있어요. 특히 처음 보는 사람들과 만날 때는 더욱 그렇죠."
+    },
+    {
+      "id": 5,
+      "type": "ooc",
+      "character": "타로",
+      "content": "알겠습니다! 그럼 그런 느낌으로 연기해볼게요."
+    },
+    {
+      "id": 6,
+      "type": "character",
+      "character": "사쿠라",
+      "content": "밝은 미소를 지으며 다가온다. \"안녕하세요! 오늘 날씨가 정말 좋네요. 벚꽃이 예쁘게 피었어요.\""
+    },
+    {
+      "id": 7,
+      "type": "character",
+      "character": "카게마루",
+      "content": "사쿠라를 조심스럽게 바라보며 고개를 끄덕인다. \"...그렇군요.\""
+    },
+    {
+      "id": 8,
+      "type": "ooc",
+      "character": "하나코",
+      "content": "사쿠라는 아직 다른 두 사람이 닌자라는 걸 확신하지 못하는 상황인가요?"
+    },
+    {
+      "id": 9,
+      "type": "ooc",
+      "character": "GM",
+      "content": "맞습니다. 사쿠라는 추측만 하고 있는 상태예요. 확신은 없죠."
+    },
+    {
+      "id": 10,
+      "type": "character",
+      "character": "류진",
+      "content": "묵묵히 커피를 마시며 상황을 지켜본다. \"모두 모인 것 같군. 본론으로 들어가자.\""
+    },
+    {
+      "id": 11,
+      "type": "system",
+      "content": "류진의 말에 카페의 분위기가 순간 긴장감으로 바뀌었다. 다른 손님들은 여전히 평범한 대화를 나누고 있었지만, 이 세 사람 사이에는 다른 공기가 흘렀다."
+    },
+    {
+      "id": 12,
+      "type": "character",
+      "character": "사쿠라",
+      "content": "\"그런데... 여러분도 최근 이상한 일들이 많이 일어난다고 생각하지 않으세요?\""
+    },
+    {
+      "id": 13,
+      "type": "character",
+      "character": "카게마루",
+      "content": "잠시 침묵한 후 천천히 입을 연다. \"어떤 종류의 이상한 일을 말하는 건가요?\""
+    },
+    {
+      "id": 14,
+      "type": "ooc",
+      "character": "타로",
+      "content": "카게마루가 상대방을 떠보는 느낌으로 말하는 거죠?"
+    },
+    {
+      "id": 15,
+      "type": "ooc",
+      "character": "GM",
+      "content": "네, 정확해요. 상대방이 얼마나 알고 있는지 파악하려는 거예요."
+    },
+    {
+      "id": 16,
+      "type": "character",
+      "character": "사쿠라",
+      "content": "\"음... 그냥 뉴스에서 보는 사건들이 좀 이상하다고 생각해서요. 마치 누군가 의도적으로...\""
+    },
+    {
+      "id": 17,
+      "type": "character",
+      "character": "류진",
+      "content": "사쿠라의 말을 끊으며 \"조심스럽게 말하는 게 좋겠군. 여기는 공개된 장소니까.\""
+    },
+    {
+      "id": 18,
+      "type": "system",
+      "content": "이때 카페 밖으로 검은 정장을 입은 수상한 남자들이 지나가는 것이 보였다. 세 닌자 모두 그들의 존재를 눈치챘다."
+    },
+    {
+      "id": 19,
+      "type": "ooc",
+      "character": "지로",
+      "content": "류진이 저 남자들을 알아볼까요?"
+    },
+    {
+      "id": 20,
+      "type": "ooc",
+      "character": "GM",
+      "content": "인식 판정을 해보세요. 목표값은 8입니다."
+    },
+    {
+      "id": 21,
+      "type": "dice",
+      "character": "류진",
+      "content": "저들이 조직 사람들인지 확인한다.",
+      "diceResult": {
+        "dice": "2d6+2",
+        "result": 10,
+        "rolls": [4, 4],
+        "modifier": 2,
+        "success": true,
+        "difficulty": 8
+      }
+    },
+    {
+      "id": 22,
+      "type": "ooc",
+      "character": "GM",
+      "content": "성공입니다! 류진은 저들이 \"검은 벚꽃\" 조직의 감시팀이라는 것을 알아챕니다."
+    },
+    {
+      "id": 23,
+      "type": "character",
+      "character": "류진",
+      "content": "표정이 굳어지며 작은 목소리로 \"이곳은 안전하지 않다. 다른 곳으로 이동하자.\""
+    },
+    {
+      "id": 24,
+      "type": "character",
+      "character": "카게마루",
+      "content": "류진의 말에 즉시 반응하며 일어선다. \"알겠습니다.\""
+    },
+    {
+      "id": 25,
+      "type": "character",
+      "character": "사쿠라",
+      "content": "상황을 파악하지 못한 채 당황하며 \"어, 어디로 가시는 거예요?\""
+    },
+    {
+      "id": 26,
+      "type": "ooc",
+      "character": "하나코",
+      "content": "사쿠라도 따라가야 하나요? 아직 상황을 잘 모르는데..."
+    },
+    {
+      "id": 27,
+      "type": "ooc",
+      "character": "GM",
+      "content": "사쿠라의 직감으로 판정해보세요. 이 상황이 위험한지 느낄 수 있는지요."
+    },
+    {
+      "id": 28,
+      "type": "ooc",
+      "character": "하나코",
+      "content": "직감 판정이군요. 굴려볼게요!"
+    },
+    {
+      "id": 29,
+      "type": "dice",
+      "character": "사쿠라",
+      "content": "뭔가 위험한 상황인지 직감으로 느껴본다.",
+      "diceResult": {
+        "dice": "2d6+1",
+        "result": 8,
+        "rolls": [3, 4],
+        "modifier": 1,
+        "success": true,
+        "difficulty": 7
+      }
+    },
+    {
+      "id": 30,
+      "type": "ooc",
+      "character": "GM",
+      "content": "성공! 사쿠라는 지금 상황이 심상치 않다는 것을 직감적으로 느낍니다."
+    },
+    {
+      "id": 31,
+      "type": "character",
+      "character": "사쿠라",
+      "content": "갑자기 표정이 진지해지며 \"...알겠어요. 따라갈게요.\""
+    }
+  ]
+}
