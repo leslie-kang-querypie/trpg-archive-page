@@ -2,14 +2,7 @@ import Image from 'next/image';
 
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-
-interface Character {
-  name: string;
-  player: string;
-  class: string;
-  description: string;
-  thumbnail: string;
-}
+import { Character } from '@/types';
 
 interface SessionInfo {
   rule: string;

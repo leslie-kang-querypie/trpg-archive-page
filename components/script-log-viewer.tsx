@@ -5,58 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-export interface LogEntry {
-  type:
-    | 'system'
-    | 'character'
-    | 'whisper'
-    | 'dice'
-    | 'ooc'
-    | 'damage'
-    | 'handout';
-  character?: string;
-  target?: string; // 귓속말 대상 (system도 사용 가능)
-  content: string;
-  // 주사위 관련 추가 정보
-  diceResult?: {
-    dice: string; // 예: "1d20+5"
-    result: number;
-    rolls: number[]; // 실제 굴린 값들
-    modifier?: number;
-    success?: boolean; // 성공/실패 여부
-    difficulty?: number; // 목표값
-  };
-  // 데미지 관련 추가 정보
-  damageInfo?: {
-    amount: number;
-    type: string; // "damage" | "heal"
-    target: string;
-  };
-  // 핸드아웃 관련 추가 정보
-  handoutInfo?: {
-    title: string;
-    target: string; // 받는 플레이어
-    category?: string; // "배경", "사명", "비밀" 등
-    isSecret?: boolean; // 비밀 핸드아웃 여부
-  };
-}
-
-interface Character {
-  name: string;
-  player: string;
-  class: string;
-  description: string;
-  thumbnail: string;
-}
-
-interface ReadingSettings {
-  showAvatars: boolean;
-  fontSize: number;
-  lineSpacing: number;
-  paragraphSpacing: number;
-  centerSystemMessages: boolean;
-}
+import { LogEntry, Character, ReadingSettings } from '@/types';
 
 interface ScriptLogViewerProps {
   entries: LogEntry[];
@@ -160,7 +109,7 @@ export function ScriptLogViewer({
           finishCurrentGroup();
           currentGroup = [entry];
           currentGroupType = entry.type;
-          currentGroupCharacter = entry.type === 'character' ? entry.character : null;
+          currentGroupCharacter = entry.type === 'character' ? entry.character ?? null : null;
         }
       } else {
         // 그룹화하지 않는 타입이면 현재 그룹 완료 후 단일로 추가

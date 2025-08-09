@@ -11,14 +11,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-
-interface ReadingSettings {
-  showAvatars: boolean;
-  fontSize: number;
-  lineSpacing: number;
-  paragraphSpacing: number;
-  centerSystemMessages: boolean;
-}
+import { ReadingSettings } from '@/types';
 
 interface ReadingSettingsModalProps {
   open: boolean;
@@ -182,6 +175,7 @@ export function ReadingSettingsModal({
                 fontSize: 14,
                 lineSpacing: 1.5,
                 paragraphSpacing: 2,
+                centerSystemMessages: false,
               });
             }}
             variant='secondary'

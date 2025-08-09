@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { ScriptLogViewer, LogEntry } from '@/components/script-log-viewer';
+import { ScriptLogViewer } from '@/components/script-log-viewer';
+import { LogEntry } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

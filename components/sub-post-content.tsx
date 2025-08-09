@@ -1,35 +1,7 @@
 import { FileText } from 'lucide-react';
 
 import { ScriptLogViewer } from './script-log-viewer';
-
-interface LogEntry {
-  id: number;
-  type: 'system' | 'character';
-  character?: string;
-  content: string;
-}
-
-interface Character {
-  name: string;
-  player: string;
-  class: string;
-  description: string;
-  thumbnail: string;
-}
-
-interface SubPost {
-  id: string;
-  title: string;
-  description: string;
-  content: LogEntry[];
-}
-
-interface ReadingSettings {
-  showAvatars: boolean;
-  fontSize: number;
-  lineSpacing: number;
-  paragraphSpacing: number;
-}
+import { LogEntry, Character, SubPost, ReadingSettings } from '@/types';
 
 interface SubPostContentProps {
   subPost: SubPost | null;

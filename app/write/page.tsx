@@ -22,14 +22,7 @@ import {
   useKeyboardShortcuts,
   createCommonShortcuts,
 } from '@/hooks/use-keyboard-shortcuts';
-
-interface Character {
-  name: string;
-  player: string;
-  class: string;
-  description: string;
-  thumbnail: string;
-}
+import { Character } from '@/types';
 
 interface SubPost {
   id: string;
