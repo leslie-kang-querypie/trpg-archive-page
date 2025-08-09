@@ -147,7 +147,7 @@ export default function PostPage() {
   return (
     <div className='min-h-screen bg-background'>
       <header className='border-b bg-card'>
-        <div className='container mx-auto px-4 py-4'>
+        <div className='container mx-auto px-4 py-4 max-w-6xl'>
           <div className='flex items-center gap-4'>
             <Link href='/'>
               <Button variant='ghost' size='sm'>

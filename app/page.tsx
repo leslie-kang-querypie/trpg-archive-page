@@ -105,19 +105,26 @@ export default function HomePage() {
     <div className='min-h-screen bg-background'>
       {/* Header */}
       <header className='border-b bg-card'>
-        <div className='container mx-auto px-4 py-4'>
+        <div className='container mx-auto px-4 py-4 max-w-6xl'>
           <div className='flex items-center justify-between'>
             <h1 className='text-2xl font-bold'>TRPG 로그 아카이브</h1>
-            <Link href='/write'>
-              <Button>
-                <Plus className='w-4 h-4 mr-2' />새 로그 작성
-              </Button>
-            </Link>
+            <div className='flex gap-2'>
+              <Link href='/parse'>
+                <Button variant='outline'>
+                  <Plus className='w-4 h-4 mr-2' />로그 파서
+                </Button>
+              </Link>
+              <Link href='/write'>
+                <Button>
+                  <Plus className='w-4 h-4 mr-2' />새 로그 작성
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className='container mx-auto px-4 py-6'>
+      <div className='container mx-auto px-4 py-6 max-w-6xl'>
         {/* Controls */}
         <div className='flex flex-col md:flex-row gap-4 mb-6'>
           <div className='flex-1 relative'>
