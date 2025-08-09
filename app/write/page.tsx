@@ -210,7 +210,6 @@ export default function WritePage() {
       thumbnail: postData.thumbnail,
       tags: postData.tags,
       date: new Date().toISOString().split('T')[0],
-      views: 0,
       password: postData.password,
       isPrivate: postData.isPrivate,
       oocPassword: postData.oocPassword,

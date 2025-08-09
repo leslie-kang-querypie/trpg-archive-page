@@ -17,7 +17,6 @@ export interface Post {
   thumbnail: string;
   tags: string[];
   date: string;
-  views: number;
   password: string;
   isPrivate: boolean;
   oocPassword: string;

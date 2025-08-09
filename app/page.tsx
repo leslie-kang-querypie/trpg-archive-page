@@ -1,6 +1,6 @@
 'use client';
 
-import { Grid, List, Search, Eye, Lock } from 'lucide-react';
+import { Grid, List, Search, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -156,17 +156,17 @@ export default function HomePage() {
 
         {/* Posts */}
         {viewMode === 'grid' ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
             {filteredPosts.map(post => (
               <Link key={post.id} href={`/post/${post.id}`}>
-                <Card className='hover:shadow-lg transition-shadow cursor-pointer h-full'>
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden'>
                   <div className='relative'>
                     <Image
                       src={post.thumbnail || '/placeholder.svg'}
                       alt={post.title}
                       width={300}
                       height={200}
-                      className='w-full h-48 object-cover rounded-t-lg'
+                      className='w-full h-48 object-cover'
                     />
                     {post.isPrivate && (
                       <div className='absolute top-2 right-2 bg-black/70 text-white p-1 rounded'>
@@ -194,12 +194,8 @@ export default function HomePage() {
                         </Badge>
                       ))}
                     </div>
-                    <div className='flex items-center justify-between text-sm text-muted-foreground'>
+                    <div className='text-sm text-muted-foreground'>
                       <span>{post.date}</span>
-                      <div className='flex items-center gap-2'>
-                        <Eye className='w-4 h-4' />
-                        <span>{post.views}</span>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -245,12 +241,8 @@ export default function HomePage() {
                             </Badge>
                           ))}
                         </div>
-                        <div className='flex items-center justify-between text-sm text-muted-foreground'>
+                        <div className='text-sm text-muted-foreground'>
                           <span>{post.date}</span>
-                          <div className='flex items-center gap-1'>
-                            <Eye className='w-4 h-4' />
-                            <span>{post.views}</span>
-                          </div>
                         </div>
                       </div>
                     </div>

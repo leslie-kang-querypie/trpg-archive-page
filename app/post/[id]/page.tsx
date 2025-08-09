@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, Lock, Unlock, FileText } from 'lucide-react';
+import { Lock, Unlock, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
@@ -187,16 +187,8 @@ export default function PostPage() {
                     </Badge>
                   ))}
                 </div>
-                <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                <div className='text-sm text-muted-foreground'>
                   <span>{post.date}</span>
-                  <div className='flex items-center gap-1'>
-                    <Eye className='w-4 h-4' />
-                    <span>{post.views}</span>
-                  </div>
-                  <div className='flex items-center gap-1'>
-                    <FileText className='w-4 h-4' />
-                    <span>{post.subPosts?.length || 0}개 세션</span>
-                  </div>
                 </div>
               </div>
             </div>
