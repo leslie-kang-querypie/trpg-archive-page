@@ -717,6 +717,13 @@ export default function EditPage() {
   const [rangeStart, setRangeStart] = useState<number>(0);
   const [rangeEnd, setRangeEnd] = useState<number>(499);
   const [editingEntries, setEditingEntries] = useState<LogEntry[]>([]);
+  
+  // SubPost 메타데이터 상태
+  const [subPostMeta, setSubPostMeta] = useState({
+    id: '',
+    title: '',
+    description: ''
+  });
 
   useEffect(() => {
     const savedData = localStorage.getItem('trpg_editing_data');
@@ -890,12 +897,20 @@ export default function EditPage() {
       return;
     }
 
-    const blob = new Blob([JSON.stringify(parsedEntries, null, 2)], {
+    // SubPost 형태로 완성된 데이터 구조 생성
+    const subPostData = {
+      id: subPostMeta.id || `session_${Date.now()}`,
+      title: subPostMeta.title || '편집된 TRPG 로그',
+      description: subPostMeta.description || '편집기에서 생성된 로그 세션',
+      content: parsedEntries
+    };
+
+    const blob = new Blob([JSON.stringify(subPostData, null, 2)], {
       type: 'application/json',
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `trpg_chatlog_edited_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `trpg_subpost_${subPostData.id}_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
   };
 
@@ -1119,54 +1134,101 @@ export default function EditPage() {
           </div>
         ) : (
           // 3단계: 편집
-          <div className={`flex gap-6 h-[calc(100vh-200px)] ${showSidebar ? 'grid-cols-3' : 'grid-cols-1'}`}>
-            {/* 메인 편집 영역 */}
-            <div className={`${showSidebar ? 'flex-1' : 'w-full'} flex flex-col`}>
-              <Card className="flex-1 flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">로그 편집기</CardTitle>
-                      <CardDescription>
-                        선택한 {editingEntries.length}개의 로그를 편집합니다. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가하세요.
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="ooc-toggle-edit" className="text-sm font-medium">
-                          사담
-                        </Label>
-                        <Switch
-                          id="ooc-toggle-edit"
-                          checked={showOOC}
-                          onCheckedChange={setShowOOC}
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {showOOC ? 'ON' : 'OFF'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="raw-json-toggle" className="text-sm font-medium">
-                          Raw JSON
-                        </Label>
-                        <Switch
-                          id="raw-json-toggle"
-                          checked={showRawJson}
-                          onCheckedChange={setShowRawJson}
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          {showRawJson ? 'ON' : 'OFF'}
-                        </span>
-                      </div>
-                    </div>
+          <div className="space-y-6">
+            {/* SubPost 메타데이터 입력 폼 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">세션 정보</CardTitle>
+                <CardDescription>
+                  서브포스트로 저장될 세션의 기본 정보를 입력하세요.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="session-id" className="text-sm font-medium">세션 ID</Label>
+                    <Input
+                      id="session-id"
+                      value={subPostMeta.id}
+                      onChange={(e) => setSubPostMeta(prev => ({ ...prev, id: e.target.value }))}
+                      placeholder="session_01"
+                    />
                   </div>
-                </CardHeader>
+                  <div>
+                    <Label htmlFor="session-title" className="text-sm font-medium">세션 제목</Label>
+                    <Input
+                      id="session-title"
+                      value={subPostMeta.title}
+                      onChange={(e) => setSubPostMeta(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="1회차: 모험의 시작"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="session-desc" className="text-sm font-medium">세션 설명</Label>
+                    <Input
+                      id="session-desc"
+                      value={subPostMeta.description}
+                      onChange={(e) => setSubPostMeta(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="세션 요약 설명"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className={`flex gap-6 h-[calc(100vh-360px)] ${showSidebar ? 'grid-cols-3' : 'grid-cols-1'}`}>
+              {/* 메인 편집 영역 */}
+              <div className={`${showSidebar ? 'flex-1' : 'w-full'} flex flex-col`}>
+                <Card className="flex-1 flex flex-col">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">로그 편집기</CardTitle>
+                        <CardDescription>
+                          선택한 {editingEntries.length}개의 로그를 편집합니다. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가하세요.
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="ooc-toggle-edit" className="text-sm font-medium">
+                            사담
+                          </Label>
+                          <Switch
+                            id="ooc-toggle-edit"
+                            checked={showOOC}
+                            onCheckedChange={setShowOOC}
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {showOOC ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="raw-json-toggle" className="text-sm font-medium">
+                            Raw JSON
+                          </Label>
+                          <Switch
+                            id="raw-json-toggle"
+                            checked={showRawJson}
+                            onCheckedChange={setShowRawJson}
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {showRawJson ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
                 <CardContent className="flex-1 overflow-hidden p-4">
                   {showRawJson ? (
                     <div className="h-full flex flex-col">
                       <div className="flex-1 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-auto">
                         <pre className="text-xs font-mono whitespace-pre-wrap">
-                          {JSON.stringify(editingEntries, null, 2)}
+                          {JSON.stringify({
+                            id: subPostMeta.id || `session_${Date.now()}`,
+                            title: subPostMeta.title || '편집된 TRPG 로그',
+                            description: subPostMeta.description || '편집기에서 생성된 로그 세션',
+                            content: editingEntries
+                          }, null, 2)}
                         </pre>
                       </div>
                     </div>
@@ -1224,14 +1286,24 @@ export default function EditPage() {
                       <div className="space-y-3">
                         {/* 캐릭터 타입 */}
                         {(selectedLogType === 'character' || selectedLogType === 'ooc' || selectedLogType === 'whisper') && (
-                          <div>
-                            <Label className="text-sm font-medium">캐릭터명</Label>
-                            <Input
-                              value={newEntryData.character || ''}
-                              onChange={(e) => setNewEntryData(prev => ({ ...prev, character: e.target.value }))}
-                              placeholder="캐릭터명을 입력하세요"
-                            />
-                          </div>
+                          <>
+                            <div>
+                              <Label className="text-sm font-medium">캐릭터명</Label>
+                              <Input
+                                value={newEntryData.character || ''}
+                                onChange={(e) => setNewEntryData(prev => ({ ...prev, character: e.target.value }))}
+                                placeholder="캐릭터명을 입력하세요"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">아바타 URL (선택사항)</Label>
+                              <Input
+                                value={newEntryData.avatar || ''}
+                                onChange={(e) => setNewEntryData(prev => ({ ...prev, avatar: e.target.value }))}
+                                placeholder="아바타 이미지 URL"
+                              />
+                            </div>
+                          </>
                         )}
 
                         {/* 귓속말 타겟 */}
@@ -1249,6 +1321,14 @@ export default function EditPage() {
                         {/* 주사위 결과 */}
                         {selectedLogType === 'dice' && (
                           <>
+                            <div>
+                              <Label className="text-sm font-medium">캐릭터명</Label>
+                              <Input
+                                value={newEntryData.character || ''}
+                                onChange={(e) => setNewEntryData(prev => ({ ...prev, character: e.target.value }))}
+                                placeholder="주사위를 굴린 캐릭터명"
+                              />
+                            </div>
                             <div>
                               <Label className="text-sm font-medium">주사위 표기 (예: 2d6+3)</Label>
                               <Input
@@ -1404,9 +1484,10 @@ export default function EditPage() {
                       </div>
                     )}
                   </CardContent>
-                </Card>
-              </div>
-            )}
+                  </Card>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
