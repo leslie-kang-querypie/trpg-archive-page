@@ -113,7 +113,7 @@ const Stepper = React.forwardRef<HTMLDivElement, StepperProps>(
     }));
 
     return (
-      <div ref={ref} className={cn('w-full', className)}>
+      <div ref={ref} className={cn('w-full py-8 mb-8', className)}>
         <nav aria-label="Progress">
           <ol role="list" className="flex items-center">
             {stepsWithStatus.map((step, stepIndex) => (

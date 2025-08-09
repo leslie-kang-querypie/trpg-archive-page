@@ -711,8 +711,8 @@ export default function EditPage() {
   const [insertIndex, setInsertIndex] = useState<number>(-1);
   const [newEntryData, setNewEntryData] = useState<Partial<LogEntry>>({});
   
-  // 범위 선택 관련 상태
-  const [currentStep, setCurrentStep] = useState<'select' | 'edit'>('select');
+  // 단계 관련 상태
+  const [currentStep, setCurrentStep] = useState<'upload' | 'select' | 'edit'>('upload');
   const [rangeStart, setRangeStart] = useState<number>(0);
   const [rangeEnd, setRangeEnd] = useState<number>(499);
   const [editingEntries, setEditingEntries] = useState<LogEntry[]>([]);
@@ -727,6 +727,7 @@ export default function EditPage() {
         const chars = generateCharacters(entries);
         setCharacters(chars);
         setHasData(true);
+        setCurrentStep('select'); // 데이터가 있으면 선택 단계로
         
         // 초기 범위를 전체 로그 수에 맞게 설정
         setRangeEnd(Math.max(0, Math.min(499, entries.length - 1)));
@@ -779,6 +780,14 @@ export default function EditPage() {
 
   const backToSelect = () => {
     setCurrentStep('select');
+    setEditingEntries([]);
+    setShowSidebar(false);
+  };
+
+  const backToUpload = () => {
+    setCurrentStep('upload');
+    setParsedEntries([]);
+    setHasData(false);
     setEditingEntries([]);
     setShowSidebar(false);
   };
@@ -847,6 +856,7 @@ export default function EditPage() {
         const chars = generateCharacters(entries);
         setCharacters(chars);
         setHasData(true);
+        setCurrentStep('select'); // 업로드 후 선택 단계로 이동
         
         // 초기 범위 설정
         setRangeStart(0);
@@ -861,6 +871,7 @@ export default function EditPage() {
   const clearData = () => {
     setParsedEntries([]);
     setHasData(false);
+    setCurrentStep('upload');
     localStorage.removeItem('trpg_editing_data');
   };
 
@@ -949,32 +960,40 @@ export default function EditPage() {
       
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* 단계 표시 UI */}
-        {hasData && (
-          <div className='flex justify-center py-6'>
-            <Stepper
-              steps={[
-                {
-                  id: 'select',
-                  title: '범위 선택',
-                  description: '편집할 로그 범위 설정'
-                },
-                {
-                  id: 'edit',
-                  title: '로그 편집',
-                  description: '선택한 로그 편집'
-                }
-              ]}
-              currentStep={currentStep === 'select' ? 0 : 1}
-              onStepClick={(stepIndex) => {
-                if (stepIndex === 0) {
-                  backToSelect();
-                }
-                // edit 단계는 proceedToEdit를 통해서만 이동
-              }}
-              className='max-w-2xl'
-            />
-          </div>
-        )}
+        <div className='flex justify-center py-6'>
+          <Stepper
+            steps={[
+              {
+                id: 'upload',
+                title: 'JSON 업로드',
+                description: 'TRPG 로그 파일 업로드'
+              },
+              {
+                id: 'select',
+                title: '범위 선택',
+                description: '편집할 로그 범위 설정'
+              },
+              {
+                id: 'edit',
+                title: '로그 편집',
+                description: '선택한 로그 편집'
+              }
+            ]}
+            currentStep={
+              currentStep === 'upload' ? 0 :
+              currentStep === 'select' ? 1 : 2
+            }
+            onStepClick={(stepIndex) => {
+              if (stepIndex === 0) {
+                backToUpload();
+              } else if (stepIndex === 1 && hasData) {
+                backToSelect();
+              }
+              // edit 단계는 proceedToEdit를 통해서만 이동
+            }}
+            className='max-w-3xl'
+          />
+        </div>
 
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -983,7 +1002,9 @@ export default function EditPage() {
                 로그 편집
               </h1>
               <p className="text-muted-foreground">
-                {currentStep === 'select' 
+                {currentStep === 'upload' 
+                  ? 'TRPG 로그 JSON 파일을 업로드하여 편집을 시작하세요.'
+                  : currentStep === 'select' 
                   ? '편집할 로그 범위를 선택하세요. 슬라이더나 직접 입력으로 범위를 설정할 수 있습니다.'
                   : '선택한 로그를 편집하세요. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가할 수 있습니다.'
                 }
@@ -1013,25 +1034,25 @@ export default function EditPage() {
           </div>
         </div>
 
-        {!hasData ? (
-          // 시작 화면
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  JSON 파일 업로드
-                </CardTitle>
-                <CardDescription>
-                  기존에 파싱된 TRPG 로그 JSON 파일을 업로드하세요.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+        {currentStep === 'upload' ? (
+          // 1단계: JSON 업로드
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                JSON 파일 업로드
+              </CardTitle>
+              <CardDescription>
+                기존에 파싱된 TRPG 로그 JSON 파일을 업로드하세요. 파싱 페이지에서 생성된 JSON 파일을 사용할 수 있습니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2 flex-wrap">
                 <Button 
                   onClick={() => document.getElementById('file-upload')?.click()}
-                  className="w-full"
+                  className="flex items-center gap-2"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4" />
                   파일 선택
                 </Button>
                 <input
@@ -1041,11 +1062,20 @@ export default function EditPage() {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 className="font-medium mb-2">지원되는 파일 형식:</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>파싱 페이지에서 생성된 JSON 파일</li>
+                  <li>이전에 편집한 JSON 파일</li>
+                  <li>TRPG 로그 배열 형태의 JSON 데이터</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         ) : currentStep === 'select' ? (
-          // 1단계: 범위 선택
+          // 2단계: 범위 선택
           <div className="h-[calc(100vh-200px)] flex flex-col">
             <Card className="flex-1 flex flex-col">
               <CardHeader className="pb-3">
@@ -1079,7 +1109,7 @@ export default function EditPage() {
             </Card>
           </div>
         ) : (
-          // 2단계: 편집
+          // 3단계: 편집
           <div className={`flex gap-6 h-[calc(100vh-200px)] ${showSidebar ? 'grid-cols-3' : 'grid-cols-1'}`}>
             {/* 메인 편집 영역 */}
             <div className={`${showSidebar ? 'flex-1' : 'w-full'} flex flex-col`}>
