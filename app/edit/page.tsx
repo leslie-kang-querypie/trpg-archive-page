@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, RotateCcw, Upload, FileText, Plus, X } from 'lucide-react';
+import { ArrowLeft, Download, RotateCcw, Upload, FileText, Plus, X, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
@@ -12,6 +12,302 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+
+// 단계 표시 컴포넌트
+function StepsIndicator({ 
+  currentStep, 
+  onStepClick 
+}: { 
+  currentStep: 'select' | 'edit';
+  onStepClick: (step: 'select' | 'edit') => void;
+}) {
+  const steps = [
+    { key: 'select' as const, number: 1, label: '범위 선택' },
+    { key: 'edit' as const, number: 2, label: '로그 편집' }
+  ];
+
+  return (
+    <div className="flex items-center justify-center py-6 mb-8">
+      <div className="flex items-center">
+        {steps.map((step, index) => {
+          const isCompleted = step.key === 'select' && currentStep === 'edit';
+          const isCurrent = step.key === currentStep;
+          const isClickable = step.key === 'select' || (step.key === 'edit' && currentStep === 'edit');
+          
+          return (
+            <div key={step.key} className="flex items-center">
+              <button
+                onClick={() => isClickable && onStepClick(step.key)}
+                disabled={!isClickable}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isCompleted
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                    : isCurrent
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  isCompleted
+                    ? 'bg-white text-blue-600'
+                    : isCurrent
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-300 text-white'
+                }`}>
+                  {isCompleted ? '✓' : step.number}
+                </div>
+                <span className="font-medium">{step.label}</span>
+              </button>
+              
+              {index < steps.length - 1 && (
+                <div className={`mx-4 h-px w-12 ${
+                  isCompleted ? 'bg-blue-400' : 'bg-gray-300'
+                }`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// 범위 선택 컴포넌트
+interface RangeSelectionViewerProps {
+  entries: LogEntry[];
+  characters: any[];
+  settings: any;
+  startIndex: number;
+  endIndex: number;
+  onRangeChange: (start: number, end: number) => void;
+}
+
+function RangeSelectionViewer({ 
+  entries, 
+  characters, 
+  settings, 
+  startIndex,
+  endIndex,
+  onRangeChange
+}: RangeSelectionViewerProps) {
+  // 범위 선택 단계에서는 모든 엔트리를 표시 (사담 필터 무시)
+  const totalCount = entries.length;
+  const selectedCount = Math.max(0, endIndex - startIndex + 1);
+
+  const handleSliderChange = (values: number[]) => {
+    const [newStart, newEnd] = values;
+    onRangeChange(newStart, newEnd);
+  };
+
+  const handleStartChange = (value: string) => {
+    const newStart = Math.max(0, Math.min(parseInt(value) - 1 || 0, totalCount - 1));
+    onRangeChange(newStart, Math.max(newStart, endIndex));
+  };
+
+  const handleEndChange = (value: string) => {
+    const newEnd = Math.max(startIndex, Math.min(parseInt(value) - 1 || 0, totalCount - 1));
+    onRangeChange(startIndex, newEnd);
+  };
+
+  const getTextStyle = () => ({
+    fontSize: `${settings.fontSize}px`,
+    lineHeight: settings.lineSpacing,
+  });
+
+  const renderEntry = (entry: LogEntry, originalIndex: number, displayIndex: number) => {
+    const textStyle = getTextStyle();
+    const isInRange = originalIndex >= startIndex && originalIndex <= endIndex;
+
+    return (
+      <div 
+        key={`${entry.id}-${originalIndex}`}
+        className={`relative border rounded-lg p-3 transition-colors ${
+          isInRange 
+            ? 'bg-blue-50 border-blue-300 shadow-sm' 
+            : 'bg-white border-gray-200 opacity-60'
+        }`}
+      >
+        {/* 로그 번호 */}
+        <div className="absolute top-2 right-2 text-xs text-gray-500">
+          #{originalIndex + 1}
+        </div>
+
+        {/* 선택 표시 */}
+        {isInRange && (
+          <div className="absolute top-2 left-2 w-3 h-3 bg-blue-500 rounded-full"></div>
+        )}
+
+        {/* 엔트리 내용 */}
+        <div className={`${isInRange ? 'ml-6' : 'ml-3'} mr-12`}>
+          {/* 시스템 메시지 */}
+          {entry.type === 'system' && (
+            <div style={textStyle}>
+              <span className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-medium mr-2">SYSTEM</span>
+              <span className="text-gray-600">{entry.content.substring(0, 100)}{entry.content.length > 100 ? '...' : ''}</span>
+            </div>
+          )}
+
+          {/* 캐릭터 대화 */}
+          {entry.type === 'character' && entry.character && (
+            <div style={textStyle}>
+              <span className="inline-block bg-green-100 px-2 py-1 rounded text-xs font-medium mr-2">CHARACTER</span>
+              <span className='font-bold text-gray-800'>{entry.character}</span>
+              <span className='ml-2 text-gray-600'>{entry.content.substring(0, 80)}{entry.content.length > 80 ? '...' : ''}</span>
+            </div>
+          )}
+
+          {/* OOC */}
+          {entry.type === 'ooc' && (
+            <div style={textStyle}>
+              <span className="inline-block bg-yellow-100 px-2 py-1 rounded text-xs font-medium mr-2">OOC</span>
+              <span className='font-medium text-gray-800'>{entry.character}</span>
+              <span className='ml-2 text-gray-600'>{entry.content.substring(0, 80)}{entry.content.length > 80 ? '...' : ''}</span>
+            </div>
+          )}
+
+          {/* 귓속말 */}
+          {entry.type === 'whisper' && entry.character && (
+            <div style={textStyle}>
+              <span className="inline-block bg-amber-100 px-2 py-1 rounded text-xs font-medium mr-2">WHISPER</span>
+              <span className='font-bold text-gray-800'>{entry.character}</span>
+              {entry.target && (
+                <>
+                  <span className='mx-1'>→</span>
+                  <span className='font-medium text-gray-700'>{entry.target}</span>
+                </>
+              )}
+              <span className='ml-2 text-gray-600'>{entry.content.substring(0, 60)}{entry.content.length > 60 ? '...' : ''}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className='space-y-4 h-full flex flex-col'>
+      {/* 범위 선택 컨트롤 */}
+      <div className="bg-white border rounded-lg p-4 flex-shrink-0">
+        <div className="space-y-4">
+          <div className="text-lg font-semibold">
+            편집 범위 선택: {selectedCount}개 로그 선택됨 (전체 {totalCount}개)
+          </div>
+          
+          {/* 직접 입력 */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">시작:</Label>
+              <Input
+                type="number"
+                min="1"
+                max={totalCount}
+                value={startIndex + 1}
+                onChange={(e) => handleStartChange(e.target.value)}
+                className="w-20 text-center"
+              />
+            </div>
+            <span className="text-gray-500">~</span>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">끝:</Label>
+              <Input
+                type="number"
+                min="1"
+                max={totalCount}
+                value={endIndex + 1}
+                onChange={(e) => handleEndChange(e.target.value)}
+                className="w-20 text-center"
+              />
+            </div>
+            <div className="flex gap-2 ml-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onRangeChange(0, Math.min(499, totalCount - 1))}
+              >
+                처음 500개
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onRangeChange(Math.max(0, totalCount - 500), totalCount - 1)}
+              >
+                마지막 500개
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onRangeChange(0, totalCount - 1)}
+              >
+                전체 선택
+              </Button>
+            </div>
+          </div>
+
+          {/* 범위 슬라이더 */}
+          {totalCount > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">범위 슬라이더</Label>
+              <div className="px-3">
+                <Slider
+                  value={[startIndex, endIndex]}
+                  onValueChange={handleSliderChange}
+                  max={totalCount - 1}
+                  min={0}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>1</span>
+                <span className="font-medium text-blue-600">
+                  #{startIndex + 1} ~ #{endIndex + 1}
+                </span>
+                <span>{totalCount}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 로그 미리보기 */}
+      <div className="flex-1 overflow-y-auto space-y-2">
+        <div className="text-sm font-medium text-gray-600 mb-3">
+          미리보기 (선택된 범위가 파란색으로 표시됩니다)
+        </div>
+        
+        {/* 시작 부분 컨텍스트 */}
+        {startIndex > 0 && (
+          <div className="text-xs text-gray-400 text-center py-2">
+            ... {startIndex}개 로그 생략 ...
+          </div>
+        )}
+
+        {/* 선택 범위 + 앞뒤 컨텍스트 표시 */}
+        {entries
+          .slice(Math.max(0, startIndex - 3), Math.min(totalCount, endIndex + 4))
+          .map((entry, arrayIndex) => {
+            const originalIndex = Math.max(0, startIndex - 3) + arrayIndex;
+            return renderEntry(entry, originalIndex, 0);
+          })}
+
+        {/* 끝 부분 컨텍스트 */}
+        {endIndex < totalCount - 1 && (
+          <div className="text-xs text-gray-400 text-center py-2">
+            ... {totalCount - endIndex - 1}개 로그 생략 ...
+          </div>
+        )}
+
+        {totalCount === 0 && (
+          <div className='text-center py-12 text-muted-foreground'>
+            표시할 내용이 없습니다.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // 편집 가능한 로그 뷰어 컴포넌트
 interface EditableLogViewerProps {
@@ -93,47 +389,35 @@ function EditableLogViewer({
     const paragraphStyle = getParagraphSpacing();
 
     return (
-      <div key={`${entry.id}-${actualIndex}`}>
-        {/* 삽입 버튼 */}
-        <div 
-          className="group flex justify-center py-2 hover:bg-gray-50 cursor-pointer"
-          onClick={() => onInsertRequest(actualIndex)}
-        >
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <Plus className="w-4 h-4 text-gray-400 hover:text-blue-500" />
-          </div>
+      <div className="relative group border-l-2 border-transparent hover:border-blue-200 pl-3">
+        {/* 편집/삭제 버튼 */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          {!isEditing && (
+            <>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => startEdit(actualIndex, entry.content)}
+                className="h-6 px-2 text-xs"
+              >
+                편집
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => onEntryDelete(actualIndex)}
+                className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </>
+          )}
         </div>
 
-        {/* 로그 엔트리 */}
-        <div className="relative group border-l-2 border-transparent hover:border-blue-200 pl-3">
-          {/* 편집/삭제 버튼 */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-            {!isEditing && (
-              <>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => startEdit(actualIndex, entry.content)}
-                  className="h-6 px-2 text-xs"
-                >
-                  편집
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => onEntryDelete(actualIndex)}
-                  className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* 엔트리 내용 */}
-          <div style={paragraphStyle}>
-            {/* 시스템 메시지 */}
-            {entry.type === 'system' && (
+        {/* 엔트리 내용 */}
+        <div style={paragraphStyle}>
+          {/* 시스템 메시지 */}
+          {entry.type === 'system' && (
               <div className={`text-muted-foreground ${settings.centerSystemMessages ? 'text-center' : ''}`} style={textStyle}>
                 {isEditing ? (
                   <div className="space-y-2">
@@ -151,10 +435,10 @@ function EditableLogViewer({
                   entry.content
                 )}
               </div>
-            )}
+          )}
 
-            {/* 캐릭터 대화 */}
-            {entry.type === 'character' && entry.character && (
+          {/* 캐릭터 대화 */}
+          {entry.type === 'character' && entry.character && (
               <div className='flex gap-3'>
                 {settings.showAvatars && (
                   <div className="w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700">
@@ -182,10 +466,10 @@ function EditableLogViewer({
                   </div>
                 </div>
               </div>
-            )}
+          )}
 
-            {/* OOC */}
-            {entry.type === 'ooc' && (
+          {/* OOC */}
+          {entry.type === 'ooc' && (
               <div className='flex gap-3'>
                 {settings.showAvatars && (
                   <div className='w-7 h-7 flex-shrink-0'></div>
@@ -211,10 +495,10 @@ function EditableLogViewer({
                   </div>
                 </div>
               </div>
-            )}
+          )}
 
-            {/* 귓속말 */}
-            {entry.type === 'whisper' && entry.character && (
+          {/* 귓속말 */}
+          {entry.type === 'whisper' && entry.character && (
               <div className='bg-amber-50 rounded-lg px-3 py-2 italic'>
                 <div className='flex items-start gap-3'>
                   {settings.showAvatars && (
@@ -248,24 +532,219 @@ function EditableLogViewer({
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+          )}
+
+          {/* 주사위 굴리기 */}
+          {entry.type === 'dice' && entry.diceResult && (
+              <div className='flex gap-3'>
+                {settings.showAvatars && (
+                  <div className='w-7 h-7 flex-shrink-0'></div>
+                )}
+                <div className='flex-1 min-w-0 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200'>
+                  <div className='flex items-center gap-2 flex-wrap' style={textStyle}>
+                    <div className='w-4 h-4 bg-blue-600 rounded-sm flex items-center justify-center'>
+                      <span className='text-white text-xs font-bold'>D</span>
+                    </div>
+                    <span className='font-bold'>{entry.character}</span>
+                    <span>굴림:</span>
+                    <span className='bg-gray-200 px-2 py-1 rounded text-sm font-mono'>
+                      {entry.diceResult.dice}
+                    </span>
+                    <span>=</span>
+                    <span className='font-mono text-sm text-gray-600'>
+                      [{entry.diceResult.rolls?.join(', ')}]
+                      {entry.diceResult.modifier ? ` + ${entry.diceResult.modifier}` : ''}
+                    </span>
+                    <span>=</span>
+                    <span className='bg-blue-600 text-white px-2 py-1 rounded font-bold'>
+                      {entry.diceResult.result}
+                    </span>
+                  </div>
+                  {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                      <Textarea
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => saveEdit(actualIndex)}>저장</Button>
+                        <Button size="sm" variant="outline" onClick={cancelEdit}>취소</Button>
+                      </div>
+                    </div>
+                  ) : entry.content && (
+                    <div className='mt-1 text-sm text-gray-600' style={textStyle}>
+                      {entry.content}
+                    </div>
+                  )}
+                </div>
+              </div>
+          )}
+
+          {/* 데미지/힐링 */}
+          {entry.type === 'damage' && entry.damageInfo && (
+              <div className='flex gap-3'>
+                {settings.showAvatars && (
+                  <div className='w-7 h-7 flex-shrink-0'></div>
+                )}
+                <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
+                  entry.damageInfo.type === 'damage'
+                    ? 'bg-red-50 border-red-200'
+                    : 'bg-green-50 border-green-200'
+                }`}>
+                  <div className='flex items-center gap-2' style={textStyle}>
+                    <div className={`w-4 h-4 rounded-full ${
+                      entry.damageInfo.type === 'damage' ? 'bg-red-600' : 'bg-green-600'
+                    }`}>
+                      <span className='text-white text-xs flex items-center justify-center w-full h-full'>♥</span>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      entry.damageInfo.type === 'damage' 
+                        ? 'bg-red-100 text-red-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {entry.damageInfo.type === 'damage' ? '데미지' : '힐링'}
+                    </span>
+                    <span className='font-bold'>{entry.damageInfo.target}</span>
+                    <span>{entry.damageInfo.type === 'damage' ? '받은 피해:' : '회복:'}</span>
+                    <span className={`px-2 py-1 rounded font-bold text-white ${
+                      entry.damageInfo.type === 'damage' ? 'bg-red-600' : 'bg-green-600'
+                    }`}>
+                      {entry.damageInfo.amount}
+                    </span>
+                  </div>
+                  {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                      <Textarea
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => saveEdit(actualIndex)}>저장</Button>
+                        <Button size="sm" variant="outline" onClick={cancelEdit}>취소</Button>
+                      </div>
+                    </div>
+                  ) : entry.content && (
+                    <div className='mt-1 text-sm text-gray-600' style={textStyle}>
+                      {entry.content}
+                    </div>
+                  )}
+                </div>
+              </div>
+          )}
+
+          {/* 핸드아웃 */}
+          {entry.type === 'handout' && entry.handoutInfo && (
+              <div className='flex gap-3'>
+                {settings.showAvatars && (
+                  <div className='w-7 h-7 flex-shrink-0'></div>
+                )}
+                <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 border ${
+                  entry.handoutInfo.isSecret
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  <div className='space-y-2'>
+                    <div className='flex items-center gap-2' style={textStyle}>
+                      <div className={`w-4 h-4 rounded ${
+                        entry.handoutInfo.isSecret ? 'bg-gray-600' : 'bg-gray-400'
+                      } flex items-center justify-center`}>
+                        <span className='text-white text-xs'>📄</span>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        entry.handoutInfo.isSecret 
+                          ? 'bg-gray-700 text-gray-200 border-gray-600'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {entry.handoutInfo.isSecret ? '비밀 핸드아웃' : '핸드아웃'}
+                      </span>
+                      {entry.handoutInfo.category && (
+                        <span className={`px-2 py-1 rounded text-xs border ${
+                          entry.handoutInfo.isSecret 
+                            ? 'border-gray-600 text-gray-300'
+                            : 'border-gray-300 text-gray-600'
+                        }`}>
+                          {entry.handoutInfo.category}
+                        </span>
+                      )}
+                      <span className={entry.handoutInfo.isSecret ? 'text-gray-400' : 'text-gray-500'}>→</span>
+                      <span className={`font-bold ${
+                        entry.handoutInfo.isSecret ? 'text-gray-100' : 'text-gray-800'
+                      }`}>
+                        {entry.handoutInfo.target}
+                      </span>
+                    </div>
+                    <div className='pl-6'>
+                      <div className={`font-medium mb-1 ${
+                        entry.handoutInfo.isSecret ? 'text-gray-100' : 'text-gray-900'
+                      }`} style={textStyle}>
+                        {entry.handoutInfo.title}
+                      </div>
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            className="min-h-[60px]"
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => saveEdit(actualIndex)}>저장</Button>
+                            <Button size="sm" variant="outline" onClick={cancelEdit}>취소</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`text-sm ${
+                          entry.handoutInfo.isSecret ? 'text-gray-200' : 'text-gray-700'
+                        }`} style={textStyle}>
+                          {entry.content}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className='space-y-1 h-full overflow-y-auto'>
-      {filteredEntries.map((entry, index) => renderEntry(entry, index))}
+    <div className='flex flex-col gap-1 h-full overflow-y-auto relative'>
+      {filteredEntries.map((entry, index) => (
+        <div key={`${entry.id}-${entries.indexOf(entry)}`} className="relative">
+          {/* 삽입 버튼 - 로그 항목들 사이의 gap 중앙에 위치 */}
+          <div 
+            className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-full h-4 flex items-center justify-center group cursor-pointer"
+            onClick={() => onInsertRequest(entries.indexOf(entry))}
+          >
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-7 h-7 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Plus className="w-4 h-4 text-foreground" />
+            </Button>
+          </div>
+          
+          {renderEntry(entry, index)}
+        </div>
+      ))}
       
       {/* 마지막에 추가 버튼 */}
-      <div 
-        className="group flex justify-center py-4 hover:bg-gray-50 cursor-pointer"
-        onClick={() => onInsertRequest(entries.length)}
-      >
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-          <Plus className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+      <div className="relative">
+        <div 
+          className="w-full h-4 flex items-center justify-center group cursor-pointer"
+          onClick={() => onInsertRequest(entries.length)}
+        >
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="w-7 h-7 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Plus className="w-4 h-4 text-foreground" />
+          </Button>
         </div>
       </div>
 
@@ -288,6 +767,12 @@ export default function EditPage() {
   const [selectedLogType, setSelectedLogType] = useState<string>('');
   const [insertIndex, setInsertIndex] = useState<number>(-1);
   const [newEntryData, setNewEntryData] = useState<Partial<LogEntry>>({});
+  
+  // 범위 선택 관련 상태
+  const [currentStep, setCurrentStep] = useState<'select' | 'edit'>('select');
+  const [rangeStart, setRangeStart] = useState<number>(0);
+  const [rangeEnd, setRangeEnd] = useState<number>(499);
+  const [editingEntries, setEditingEntries] = useState<LogEntry[]>([]);
 
   useEffect(() => {
     const savedData = localStorage.getItem('trpg_editing_data');
@@ -299,6 +784,9 @@ export default function EditPage() {
         const chars = generateCharacters(entries);
         setCharacters(chars);
         setHasData(true);
+        
+        // 초기 범위를 전체 로그 수에 맞게 설정
+        setRangeEnd(Math.max(0, Math.min(499, entries.length - 1)));
       } catch (error) {
         console.error('Failed to load saved data:', error);
       }
@@ -328,15 +816,71 @@ export default function EditPage() {
     }));
   };
 
+  // 범위 변경 핸들러
+  const handleRangeChange = (start: number, end: number) => {
+    setRangeStart(start);
+    setRangeEnd(end);
+  };
+
+  // 단계 전환 함수들
+  const proceedToEdit = () => {
+    if (rangeStart > rangeEnd) {
+      alert('올바른 범위를 선택해주세요.');
+      return;
+    }
+    
+    const selectedEntries = parsedEntries.slice(rangeStart, rangeEnd + 1);
+    setEditingEntries(selectedEntries);
+    setCurrentStep('edit');
+  };
+
+  const backToSelect = () => {
+    setCurrentStep('select');
+    setEditingEntries([]);
+    setShowSidebar(false);
+  };
+
+  const saveEditedEntries = () => {
+    const newParsedEntries = [...parsedEntries];
+    
+    // 편집된 엔트리들을 원본 배열의 해당 위치에 업데이트
+    editingEntries.forEach((editedEntry, index) => {
+      const originalIndex = rangeStart + index;
+      if (originalIndex < newParsedEntries.length) {
+        newParsedEntries[originalIndex] = editedEntry;
+      }
+    });
+    
+    // 삭제된 항목들 처리 (editingEntries가 원본보다 적을 경우)
+    const originalCount = rangeEnd - rangeStart + 1;
+    if (editingEntries.length < originalCount) {
+      const deleteCount = originalCount - editingEntries.length;
+      newParsedEntries.splice(rangeStart + editingEntries.length, deleteCount);
+    }
+    
+    setParsedEntries(newParsedEntries);
+    setCurrentStep('select');
+    setEditingEntries([]);
+    
+    // 범위를 새로운 데이터 크기에 맞게 조정
+    const newLength = newParsedEntries.length;
+    if (rangeEnd >= newLength) {
+      setRangeEnd(Math.max(0, newLength - 1));
+    }
+    if (rangeStart >= newLength) {
+      setRangeStart(Math.max(0, newLength - 1));
+    }
+  };
+
   const handleEntryEdit = (index: number, newEntry: LogEntry) => {
-    const newEntries = [...parsedEntries];
+    const newEntries = [...editingEntries];
     newEntries[index] = newEntry;
-    setParsedEntries(newEntries);
+    setEditingEntries(newEntries);
   };
 
   const handleEntryDelete = (index: number) => {
-    const newEntries = parsedEntries.filter((_, i) => i !== index);
-    setParsedEntries(newEntries);
+    const newEntries = editingEntries.filter((_, i) => i !== index);
+    setEditingEntries(newEntries);
   };
 
   const handleInsertRequest = (index: number) => {
@@ -360,6 +904,10 @@ export default function EditPage() {
         const chars = generateCharacters(entries);
         setCharacters(chars);
         setHasData(true);
+        
+        // 초기 범위 설정
+        setRangeStart(0);
+        setRangeEnd(Math.max(0, Math.min(499, entries.length - 1)));
       } catch (error) {
         alert('파일 파싱에 실패했습니다.');
       }
@@ -401,6 +949,9 @@ export default function EditPage() {
     { value: 'character', label: '캐릭터' },
     { value: 'whisper', label: '귓속말' },
     { value: 'ooc', label: 'OOC' },
+    { value: 'dice', label: '주사위' },
+    { value: 'damage', label: '데미지/힐링' },
+    { value: 'handout', label: '핸드아웃' },
   ];
 
   const handleAddEntry = () => {
@@ -409,16 +960,38 @@ export default function EditPage() {
       return;
     }
 
+    // 타입별 추가 유효성 검사
+    if (['character', 'ooc', 'whisper'].includes(selectedLogType) && !newEntryData.character) {
+      alert('캐릭터명을 입력해주세요.');
+      return;
+    }
+    if (selectedLogType === 'whisper' && !newEntryData.target) {
+      alert('받는 사람을 입력해주세요.');
+      return;
+    }
+    if (selectedLogType === 'dice' && (!newEntryData.diceResult?.dice || !newEntryData.diceResult?.result)) {
+      alert('주사위 정보를 모두 입력해주세요.');
+      return;
+    }
+    if (selectedLogType === 'damage' && (!newEntryData.damageInfo?.target || !newEntryData.damageInfo?.amount)) {
+      alert('데미지 정보를 모두 입력해주세요.');
+      return;
+    }
+    if (selectedLogType === 'handout' && (!newEntryData.handoutInfo?.title || !newEntryData.handoutInfo?.target)) {
+      alert('핸드아웃 제목과 받는 사람을 입력해주세요.');
+      return;
+    }
+
     const newEntry: LogEntry = {
-      id: Math.max(...parsedEntries.map(e => e.id), 0) + 1,
+      id: Math.max(...editingEntries.map(e => e.id), 0) + 1,
       type: selectedLogType as any,
       content: newEntryData.content,
       ...newEntryData
     };
 
-    const newEntries = [...parsedEntries];
+    const newEntries = [...editingEntries];
     newEntries.splice(insertIndex, 0, newEntry);
-    setParsedEntries(newEntries);
+    setEditingEntries(newEntries);
     
     // 사이드바 닫기
     setShowSidebar(false);
@@ -432,33 +1005,52 @@ export default function EditPage() {
       <Header title="TRPG 로그 편집기" showBackButton />
       
       <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* 단계 표시 UI */}
+        {hasData && (
+          <StepsIndicator 
+            currentStep={currentStep} 
+            onStepClick={(step) => {
+              if (step === 'select') {
+                backToSelect();
+              }
+              // edit 단계는 proceedToEdit를 통해서만 이동
+            }}
+          />
+        )}
+
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold mb-2">로그 편집</h1>
+              <h1 className="text-2xl font-bold mb-2">
+                로그 편집
+              </h1>
               <p className="text-muted-foreground">
-                각 로그를 직접 편집하거나 새로운 항목을 추가할 수 있습니다.
+                {currentStep === 'select' 
+                  ? '편집할 로그 범위를 선택하세요. 슬라이더나 직접 입력으로 범위를 설정할 수 있습니다.'
+                  : '선택한 로그를 편집하세요. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가할 수 있습니다.'
+                }
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => router.push('/parse')} variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                파서로 돌아가기
-              </Button>
-              {hasData && (
-                <Button onClick={clearData} variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  새로 시작
-                </Button>
+              {currentStep === 'edit' && (
+                /* 편집 단계: 편집 완료와 다운로드 버튼만 표시 */
+                <>
+                  <Button 
+                    onClick={saveEditedEntries} 
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    편집 완료
+                  </Button>
+                  <Button 
+                    onClick={handleDownload} 
+                    disabled={!parsedEntries.length}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    JSON 다운로드
+                  </Button>
+                </>
               )}
-              <Button 
-                onClick={handleDownload} 
-                disabled={!parsedEntries.length}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                완성된 JSON 다운로드
-              </Button>
             </div>
           </div>
         </div>
@@ -494,7 +1086,42 @@ export default function EditPage() {
               </CardContent>
             </Card>
           </div>
+        ) : currentStep === 'select' ? (
+          // 1단계: 범위 선택
+          <div className="h-[calc(100vh-200px)] flex flex-col">
+            <Card className="flex-1 flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">편집할 로그 선택</CardTitle>
+                    <CardDescription>
+                      편집할 로그들을 체크박스로 선택하세요. 전체 선택도 가능합니다.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      onClick={proceedToEdit}
+                      disabled={rangeStart > rangeEnd}
+                    >
+                      편집하기 ({Math.max(0, rangeEnd - rangeStart + 1)}개 선택)
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden p-4">
+                <RangeSelectionViewer
+                  entries={parsedEntries}
+                  characters={characters}
+                  settings={defaultReadingSettings}
+                  startIndex={rangeStart}
+                  endIndex={rangeEnd}
+                  onRangeChange={handleRangeChange}
+                />
+              </CardContent>
+            </Card>
+          </div>
         ) : (
+          // 2단계: 편집
           <div className={`flex gap-6 h-[calc(100vh-200px)] ${showSidebar ? 'grid-cols-3' : 'grid-cols-1'}`}>
             {/* 메인 편집 영역 */}
             <div className={`${showSidebar ? 'flex-1' : 'w-full'} flex flex-col`}>
@@ -504,15 +1131,15 @@ export default function EditPage() {
                     <div>
                       <CardTitle className="text-lg">로그 편집기</CardTitle>
                       <CardDescription>
-                        각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가하세요.
+                        선택한 {editingEntries.length}개의 로그를 편집합니다. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가하세요.
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Label htmlFor="ooc-toggle" className="text-sm font-medium">
+                      <Label htmlFor="ooc-toggle-edit" className="text-sm font-medium">
                         사담
                       </Label>
                       <Switch
-                        id="ooc-toggle"
+                        id="ooc-toggle-edit"
                         checked={showOOC}
                         onCheckedChange={setShowOOC}
                       />
@@ -524,7 +1151,7 @@ export default function EditPage() {
                 </CardHeader>
                 <CardContent className="flex-1 overflow-hidden p-4">
                   <EditableLogViewer
-                    entries={parsedEntries}
+                    entries={editingEntries}
                     characters={characters}
                     settings={defaultReadingSettings}
                     showOOC={showOOC}
@@ -597,13 +1224,153 @@ export default function EditPage() {
                           </div>
                         )}
 
+                        {/* 주사위 결과 */}
+                        {selectedLogType === 'dice' && (
+                          <>
+                            <div>
+                              <Label className="text-sm font-medium">주사위 표기 (예: 2d6+3)</Label>
+                              <Input
+                                value={newEntryData.diceResult?.dice || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  diceResult: { ...prev.diceResult, dice: e.target.value }
+                                }))}
+                                placeholder="2d6+3"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">결과값</Label>
+                              <Input
+                                type="number"
+                                value={newEntryData.diceResult?.result || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  diceResult: { ...prev.diceResult, result: parseInt(e.target.value) || 0 }
+                                }))}
+                                placeholder="최종 결과값"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">개별 주사위 값 (쉼표로 구분)</Label>
+                              <Input
+                                value={newEntryData.diceResult?.rolls?.join(', ') || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  diceResult: { 
+                                    ...prev.diceResult, 
+                                    rolls: e.target.value.split(',').map(v => parseInt(v.trim())).filter(n => !isNaN(n))
+                                  }
+                                }))}
+                                placeholder="3, 5, 2"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* 데미지/힐링 정보 */}
+                        {selectedLogType === 'damage' && (
+                          <>
+                            <div>
+                              <Label className="text-sm font-medium">대상</Label>
+                              <Input
+                                value={newEntryData.damageInfo?.target || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  damageInfo: { ...prev.damageInfo, target: e.target.value }
+                                }))}
+                                placeholder="대상 캐릭터명"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">유형</Label>
+                              <Select 
+                                value={newEntryData.damageInfo?.type || 'damage'} 
+                                onValueChange={(value) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  damageInfo: { ...prev.damageInfo, type: value as 'damage' | 'healing' }
+                                }))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="damage">데미지</SelectItem>
+                                  <SelectItem value="healing">힐링</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">수치</Label>
+                              <Input
+                                type="number"
+                                value={newEntryData.damageInfo?.amount || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  damageInfo: { ...prev.damageInfo, amount: parseInt(e.target.value) || 0 }
+                                }))}
+                                placeholder="수치 입력"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* 핸드아웃 정보 */}
+                        {selectedLogType === 'handout' && (
+                          <>
+                            <div>
+                              <Label className="text-sm font-medium">제목</Label>
+                              <Input
+                                value={newEntryData.handoutInfo?.title || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  handoutInfo: { ...prev.handoutInfo, title: e.target.value }
+                                }))}
+                                placeholder="핸드아웃 제목"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">받는 사람</Label>
+                              <Input
+                                value={newEntryData.handoutInfo?.target || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  handoutInfo: { ...prev.handoutInfo, target: e.target.value }
+                                }))}
+                                placeholder="받는 사람"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">카테고리</Label>
+                              <Input
+                                value={newEntryData.handoutInfo?.category || ''}
+                                onChange={(e) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  handoutInfo: { ...prev.handoutInfo, category: e.target.value }
+                                }))}
+                                placeholder="카테고리 (선택사항)"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="is-secret"
+                                checked={newEntryData.handoutInfo?.isSecret || false}
+                                onCheckedChange={(checked) => setNewEntryData(prev => ({
+                                  ...prev, 
+                                  handoutInfo: { ...prev.handoutInfo, isSecret: checked as boolean }
+                                }))}
+                              />
+                              <Label htmlFor="is-secret" className="text-sm font-medium">비밀 핸드아웃</Label>
+                            </div>
+                          </>
+                        )}
+
                         {/* 내용 */}
                         <div>
                           <Label className="text-sm font-medium">내용</Label>
                           <Textarea
                             value={newEntryData.content || ''}
                             onChange={(e) => setNewEntryData(prev => ({ ...prev, content: e.target.value }))}
-                            placeholder="내용을 입력하세요"
+                            placeholder={selectedLogType === 'handout' ? '핸드아웃 내용을 입력하세요' : '내용을 입력하세요'}
                             className="min-h-[100px]"
                           />
                         </div>

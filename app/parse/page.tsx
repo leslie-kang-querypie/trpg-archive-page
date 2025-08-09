@@ -36,7 +36,6 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
-
 export default function ParsePage() {
   const [rawData, setRawData] = useState('');
   const [parsedData, setParsedData] = useState<ParsedMessage[]>([]);
@@ -340,13 +339,17 @@ link.click();`;
     if (type === 'delete') {
       setSenderMappings(prev =>
         prev.map(mapping =>
-          mapping.sender === sender ? { ...mapping, markedForDeletion: true } : mapping
+          mapping.sender === sender
+            ? { ...mapping, markedForDeletion: true }
+            : mapping
         )
       );
     } else {
       setSenderMappings(prev =>
         prev.map(mapping =>
-          mapping.sender === sender ? { ...mapping, type, markedForDeletion: false } : mapping
+          mapping.sender === sender
+            ? { ...mapping, type, markedForDeletion: false }
+            : mapping
         )
       );
     }
@@ -376,10 +379,16 @@ link.click();`;
     );
   };
 
-  const updateWhisperInfo = (sender: string, whisperFrom: string, whisperTo: string) => {
+  const updateWhisperInfo = (
+    sender: string,
+    whisperFrom: string,
+    whisperTo: string
+  ) => {
     setSenderMappings(prev =>
       prev.map(mapping =>
-        mapping.sender === sender ? { ...mapping, whisperFrom, whisperTo } : mapping
+        mapping.sender === sender
+          ? { ...mapping, whisperFrom, whisperTo }
+          : mapping
       )
     );
   };
@@ -442,7 +451,10 @@ link.click();`;
         } as any;
 
         // 아바타 정보 추가 - customAvatarUrl 우선, 없으면 원본 avatarUrl 사용
-        const avatarUrl = mapping?.customAvatarUrl || (message as any).avatarUrl || mapping?.avatarUrl;
+        const avatarUrl =
+          mapping?.customAvatarUrl ||
+          (message as any).avatarUrl ||
+          mapping?.avatarUrl;
         if (avatarUrl && !avatarUrl.includes('$0')) {
           logEntry.avatar = avatarUrl;
         }
@@ -469,12 +481,11 @@ link.click();`;
     // JSON 데이터를 localStorage에 저장하고 편집 페이지로 이동
     const dataToSave = {
       parsedData: logEntries, // LogEntry 형태로 저장
-      senderMappings: filteredMappings
+      senderMappings: filteredMappings,
     };
     localStorage.setItem('trpg_editing_data', JSON.stringify(dataToSave));
     window.location.href = '/edit';
   };
-
 
   const saveMappingPreset = () => {
     const preset = {
@@ -537,7 +548,6 @@ link.click();`;
     }
   };
 
-
   const copyScriptToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(originalScript);
@@ -562,7 +572,7 @@ link.click();`;
 
   return (
     <>
-      <Header title="TRPG 채팅 로그 파서" showBackButton />
+      <Header title='TRPG 채팅 로그 파서' showBackButton />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         <div className='mb-6'>
@@ -572,430 +582,446 @@ link.click();`;
           </p>
         </div>
 
-      <Tabs
-        value={currentTab}
-        onValueChange={setCurrentTab}
-        className='space-y-6'
-      >
-        <TabsList className='grid w-full grid-cols-3'>
-          <TabsTrigger value='script' className='flex items-center gap-2'>
-            <Code className='h-4 w-4' />
-            원본 스크립트
-          </TabsTrigger>
-          <TabsTrigger value='parse' className='flex items-center gap-2'>
-            <FileText className='h-4 w-4' />
-            로그 파싱
-          </TabsTrigger>
-          <TabsTrigger
-            value='mapping'
-            className='flex items-center gap-2'
-            disabled={senderMappings.length === 0}
-          >
-            <Settings className='h-4 w-4' />
-            타입 매핑
-          </TabsTrigger>
-        </TabsList>
+        <Tabs
+          value={currentTab}
+          onValueChange={setCurrentTab}
+          className='space-y-6'
+        >
+          <TabsList className='grid w-full grid-cols-3'>
+            <TabsTrigger value='script' className='flex items-center gap-2'>
+              <Code className='h-4 w-4' />
+              원본 스크립트
+            </TabsTrigger>
+            <TabsTrigger value='parse' className='flex items-center gap-2'>
+              <FileText className='h-4 w-4' />
+              로그 파싱
+            </TabsTrigger>
+            <TabsTrigger
+              value='mapping'
+              className='flex items-center gap-2'
+              disabled={senderMappings.length === 0}
+            >
+              <Settings className='h-4 w-4' />
+              타입 매핑
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value='script'>
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Code className='h-5 w-5' />
-                브라우저 콘솔 스크립트
-              </CardTitle>
-              <CardDescription>
-                Roll20 웹페이지에서 개발자 도구 콘솔에 붙여넣어 실행하는
-                스크립트입니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='relative'>
-                <pre className='bg-muted p-4 rounded-lg text-sm overflow-x-auto font-mono'>
-                  <code>{originalScript}</code>
-                </pre>
-                <Button
-                  onClick={copyScriptToClipboard}
-                  className='absolute top-2 right-2'
-                  size='sm'
-                >
-                  복사
-                </Button>
-              </div>
-              <div className='p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>
-                <h4 className='font-medium mb-2'>사용 방법:</h4>
-                <ol className='list-decimal list-inside space-y-1 text-sm text-muted-foreground'>
-                  <li>
-                    Roll20 세션 페이지에서 F12를 눌러 개발자 도구를 엽니다
-                  </li>
-                  <li>Console 탭으로 이동합니다</li>
-                  <li>위 스크립트를 복사해서 붙여넣고 Enter를 누릅니다</li>
-                  <li>자동으로 개선된 JSON 파일이 다운로드됩니다</li>
-                </ol>
-                <div className='mt-3 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800'>
-                  <p className='text-xs text-amber-700 dark:text-amber-300'>
-                    <strong>개선사항:</strong> DOM 구조를 정확히 분석하여
-                    메시지를 추출하고, 아바타 이미지를 자동으로 수집하며,
-                    귓속말과 일반 메시지를 구분합니다.
-                  </p>
+          <TabsContent value='script'>
+            <Card>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Code className='h-5 w-5' />
+                  브라우저 콘솔 스크립트
+                </CardTitle>
+                <CardDescription>
+                  Roll20 웹페이지에서 개발자 도구 콘솔에 붙여넣어 실행하는
+                  스크립트입니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <div className='relative'>
+                  <pre className='bg-muted p-4 rounded-lg text-sm overflow-x-auto font-mono'>
+                    <code>{originalScript}</code>
+                  </pre>
+                  <Button
+                    onClick={copyScriptToClipboard}
+                    className='absolute top-2 right-2'
+                    size='sm'
+                  >
+                    복사
+                  </Button>
                 </div>
-                <div className='mt-2 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800'>
-                  <p className='text-xs text-green-700 dark:text-green-300'>
-                    <strong>디버깅:</strong> 콘솔에서 발신자 목록과 메시지 수를
-                    확인할 수 있습니다.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value='parse'>
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Upload className='h-5 w-5' />
-                로그 데이터 업로드 및 파싱
-              </CardTitle>
-              <CardDescription>
-                브라우저에서 추출한 JSON 데이터를 여기에 붙여넣거나 파일로
-                업로드하세요.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='flex gap-2'>
-                <Button
-                  onClick={() =>
-                    document.getElementById('file-upload')?.click()
-                  }
-                  variant='outline'
-                  className='flex items-center gap-2'
-                >
-                  <Upload className='h-4 w-4' />
-                  파일 업로드
-                </Button>
-                <input
-                  id='file-upload'
-                  type='file'
-                  accept='.json,.txt'
-                  onChange={handleFileUpload}
-                  className='hidden'
-                />
-                <Button
-                  onClick={parseLogData}
-                  disabled={isProcessing || !rawData.trim()}
-                  className='flex items-center gap-2'
-                >
-                  {isProcessing ? '처리 중...' : '파싱 실행'}
-                </Button>
-              </div>
-
-              <Textarea
-                placeholder='JSON 형태의 로그 데이터를 여기에 붙여넣으세요...'
-                value={rawData}
-                onChange={e => setRawData(e.target.value)}
-                className='min-h-[300px] font-mono text-sm'
-              />
-
-              {rawData && (
-                <div className='text-sm text-muted-foreground'>
-                  입력된 데이터: {rawData.length.toLocaleString()} 문자
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value='mapping'>
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Settings className='h-5 w-5' />
-                발신자 타입 매핑
-              </CardTitle>
-              <CardDescription>
-                각 발신자의 메시지 타입을 설정하세요. 메시지 개수순으로 정렬되어
-                있습니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              {senderMappings.length > 0 && (
-                <>
-                  <div className='flex justify-between items-center'>
-                    <div className='text-sm text-muted-foreground'>
-                      총 {senderMappings.length}명의 발신자
-                    </div>
-                    <div className='flex gap-2'>
-                      <Button
-                        onClick={loadMappingPreset}
-                        variant='outline'
-                        size='sm'
-                      >
-                        불러오기
-                      </Button>
-                      <Button
-                        onClick={saveMappingPreset}
-                        variant='outline'
-                        size='sm'
-                      >
-                        저장하기
-                      </Button>
-                      <Button
-                        onClick={applyMappings}
-                        className='flex items-center gap-2'
-                      >
-                        <MessageSquare className='h-4 w-4' />
-                        로그 편집 페이지로 이동
-                      </Button>
-                    </div>
+                <div className='p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>
+                  <h4 className='font-medium mb-2'>사용 방법:</h4>
+                  <ol className='list-decimal list-inside space-y-1 text-sm text-muted-foreground'>
+                    <li>
+                      Roll20 세션 페이지에서 F12를 눌러 개발자 도구를 엽니다
+                    </li>
+                    <li>Console 탭으로 이동합니다</li>
+                    <li>위 스크립트를 복사해서 붙여넣고 Enter를 누릅니다</li>
+                    <li>자동으로 개선된 JSON 파일이 다운로드됩니다</li>
+                  </ol>
+                  <div className='mt-3 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800'>
+                    <p className='text-xs text-amber-700 dark:text-amber-300'>
+                      <strong>개선사항:</strong> DOM 구조를 정확히 분석하여
+                      메시지를 추출하고, 아바타 이미지를 자동으로 수집하며,
+                      귓속말과 일반 메시지를 구분합니다.
+                    </p>
                   </div>
+                  <div className='mt-2 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800'>
+                    <p className='text-xs text-green-700 dark:text-green-300'>
+                      <strong>디버깅:</strong> 콘솔에서 발신자 목록과 메시지
+                      수를 확인할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  <div className='grid gap-3'>
-                    {senderMappings.map(mapping => (
-                      <div key={mapping.sender} className={`border rounded-lg ${mapping.markedForDeletion ? 'opacity-50 bg-red-50 border-red-200' : ''}`}>
-                        <div className='flex items-start gap-3 p-3'>
-                          <div className='flex items-center gap-3 flex-1'>
-                            {/* 아바타 미리보기 */}
-                            {!mapping.avatarUrl ||
-                            mapping?.avatarUrl?.startsWith(
-                              'https://app.roll20.net'
-                            ) ? (
-                              <div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium'>
-                                {mapping.sender.charAt(0)}
-                              </div>
-                            ) : (
-                              <img
-                                src={mapping.avatarUrl}
-                                alt={mapping.sender}
-                                className='w-10 h-10 rounded-full object-cover border'
-                                onError={e => {
-                                  (e.target as HTMLImageElement).style.display =
-                                    'none';
-                                }}
-                              />
-                            )}
+          <TabsContent value='parse'>
+            <Card>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Upload className='h-5 w-5' />
+                  로그 데이터 업로드 및 파싱
+                </CardTitle>
+                <CardDescription>
+                  브라우저에서 추출한 JSON 데이터를 여기에 붙여넣거나 파일로
+                  업로드하세요.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <div className='flex gap-2'>
+                  <Button
+                    onClick={() =>
+                      document.getElementById('file-upload')?.click()
+                    }
+                    variant='outline'
+                    className='flex items-center gap-2'
+                  >
+                    <Upload className='h-4 w-4' />
+                    파일 업로드
+                  </Button>
+                  <input
+                    id='file-upload'
+                    type='file'
+                    accept='.json,.txt'
+                    onChange={handleFileUpload}
+                    className='hidden'
+                  />
+                  <Button
+                    onClick={parseLogData}
+                    disabled={isProcessing || !rawData.trim()}
+                    className='flex items-center gap-2'
+                  >
+                    {isProcessing ? '처리 중...' : '파싱 실행'}
+                  </Button>
+                </div>
 
-                            <div className='flex-1'>
-                              <div className='font-medium flex items-center gap-2 mb-1'>
-                                {mapping.sender}
-                                <Button
-                                  type='button'
-                                  variant='ghost'
-                                  size='sm'
-                                  className='h-6 w-6 p-0'
-                                  onClick={() =>
-                                    toggleSenderExpanded(mapping.sender)
-                                  }
-                                >
-                                  {mapping.expanded ? (
-                                    <ChevronDown className='h-3 w-3' />
-                                  ) : (
-                                    <ChevronRight className='h-3 w-3' />
-                                  )}
-                                </Button>
-                              </div>
-                              <div className='text-sm text-muted-foreground'>
-                                {mapping.count}개의 메시지
+                <Textarea
+                  placeholder='JSON 형태의 로그 데이터를 여기에 붙여넣으세요...'
+                  value={rawData}
+                  onChange={e => setRawData(e.target.value)}
+                  className='min-h-[300px] font-mono text-sm'
+                />
+
+                {rawData && (
+                  <div className='text-sm text-muted-foreground'>
+                    입력된 데이터: {rawData.length.toLocaleString()} 문자
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value='mapping'>
+            <Card>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Settings className='h-5 w-5' />
+                  발신자 타입 매핑
+                </CardTitle>
+                <CardDescription>
+                  각 발신자의 메시지 타입을 설정하세요. 메시지 개수순으로
+                  정렬되어 있습니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                {senderMappings.length > 0 && (
+                  <>
+                    <div className='flex justify-between items-center'>
+                      <div className='text-sm text-muted-foreground'>
+                        총 {senderMappings.length}명의 발신자
+                      </div>
+                      <div className='flex gap-2'>
+                        <Button
+                          onClick={loadMappingPreset}
+                          variant='outline'
+                          size='sm'
+                        >
+                          불러오기
+                        </Button>
+                        <Button
+                          onClick={saveMappingPreset}
+                          variant='outline'
+                          size='sm'
+                        >
+                          저장하기
+                        </Button>
+                        <Button
+                          onClick={applyMappings}
+                          className='flex items-center gap-2'
+                        >
+                          <MessageSquare className='h-4 w-4' />
+                          로그 편집 페이지로 이동
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className='grid gap-3'>
+                      {senderMappings.map(mapping => (
+                        <div
+                          key={mapping.sender}
+                          className={`border rounded-lg ${mapping.markedForDeletion ? 'opacity-50 bg-red-50 border-red-200' : ''}`}
+                        >
+                          <div className='flex items-start gap-3 p-3'>
+                            <div className='flex items-center gap-3 flex-1'>
+                              {/* 아바타 미리보기 */}
+                              {!mapping.avatarUrl ||
+                              mapping?.avatarUrl?.startsWith(
+                                'https://app.roll20.net'
+                              ) ? (
+                                <div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium'>
+                                  {mapping.sender.charAt(0)}
+                                </div>
+                              ) : (
+                                <img
+                                  src={mapping.avatarUrl}
+                                  alt={mapping.sender}
+                                  className='w-10 h-10 rounded-full object-cover border'
+                                  onError={e => {
+                                    (
+                                      e.target as HTMLImageElement
+                                    ).style.display = 'none';
+                                  }}
+                                />
+                              )}
+
+                              <div className='flex-1'>
+                                <div className='font-medium flex items-center gap-2 mb-1'>
+                                  {mapping.sender}
+                                  <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-6 w-6 p-0'
+                                    onClick={() =>
+                                      toggleSenderExpanded(mapping.sender)
+                                    }
+                                  >
+                                    {mapping.expanded ? (
+                                      <ChevronDown className='h-3 w-3' />
+                                    ) : (
+                                      <ChevronRight className='h-3 w-3' />
+                                    )}
+                                  </Button>
+                                </div>
+                                <div className='text-sm text-muted-foreground'>
+                                  {mapping.count}개의 메시지
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className='flex flex-col gap-2'>
-                            <Select
-                              value={mapping.markedForDeletion ? 'delete' : mapping.type}
-                              onValueChange={value =>
-                                updateSenderType(mapping.sender, value)
-                              }
-                            >
-                              <SelectTrigger className='w-48'>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MESSAGE_TYPES.map(type => (
-                                  <SelectItem
-                                    key={type.value}
-                                    value={type.value}
-                                    className={type.value === 'delete' ? 'text-red-600' : ''}
-                                  >
-                                    <div className='flex items-center gap-2'>
-                                      {type.label}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <div className='flex flex-col gap-2'>
+                              <Select
+                                value={
+                                  mapping.markedForDeletion
+                                    ? 'delete'
+                                    : mapping.type
+                                }
+                                onValueChange={value =>
+                                  updateSenderType(mapping.sender, value)
+                                }
+                              >
+                                <SelectTrigger className='w-48'>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {MESSAGE_TYPES.map(type => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                      className={
+                                        type.value === 'delete'
+                                          ? 'text-red-600'
+                                          : ''
+                                      }
+                                    >
+                                      <div className='flex items-center gap-2'>
+                                        {type.label}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
 
-                            {!mapping.markedForDeletion && (
-                              <>
-                                <div className='flex flex-col gap-1'>
-                                  <Label className='text-xs text-muted-foreground'>
-                                    표시 이름
-                                  </Label>
-                                  <Input
-                                    placeholder={mapping.sender}
-                                    value={mapping.displayName || ''}
-                                    onChange={e =>
-                                      updateDisplayName(
-                                        mapping.sender,
-                                        e.target.value
-                                      )
-                                    }
-                                    className='w-48 text-sm'
-                                  />
-                                </div>
+                              {!mapping.markedForDeletion && (
+                                <>
+                                  <div className='flex flex-col gap-1'>
+                                    <Label className='text-xs text-muted-foreground'>
+                                      표시 이름
+                                    </Label>
+                                    <Input
+                                      placeholder={mapping.sender}
+                                      value={mapping.displayName || ''}
+                                      onChange={e =>
+                                        updateDisplayName(
+                                          mapping.sender,
+                                          e.target.value
+                                        )
+                                      }
+                                      className='w-48 text-sm'
+                                    />
+                                  </div>
 
-                                {mapping.type === 'whisper' && (
-                                  <>
+                                  {mapping.type === 'whisper' && (
+                                    <>
+                                      <div className='flex flex-col gap-1'>
+                                        <Label className='text-xs text-muted-foreground'>
+                                          발신자
+                                        </Label>
+                                        <Input
+                                          placeholder='누가 보냈나요?'
+                                          value={mapping.whisperFrom || ''}
+                                          onChange={e =>
+                                            updateWhisperInfo(
+                                              mapping.sender,
+                                              e.target.value,
+                                              mapping.whisperTo || ''
+                                            )
+                                          }
+                                          className='w-48 text-sm'
+                                        />
+                                      </div>
+                                      <div className='flex flex-col gap-1'>
+                                        <Label className='text-xs text-muted-foreground'>
+                                          수신자
+                                        </Label>
+                                        <Input
+                                          placeholder='누구에게 보냈나요?'
+                                          value={mapping.whisperTo || ''}
+                                          onChange={e =>
+                                            updateWhisperInfo(
+                                              mapping.sender,
+                                              mapping.whisperFrom || '',
+                                              e.target.value
+                                            )
+                                          }
+                                          className='w-48 text-sm'
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+
+                                  {mapping.type === 'character' && (
                                     <div className='flex flex-col gap-1'>
                                       <Label className='text-xs text-muted-foreground'>
-                                        발신자
+                                        이미지 파일명
                                       </Label>
                                       <Input
-                                        placeholder='누가 보냈나요?'
-                                        value={mapping.whisperFrom || ''}
+                                        placeholder='character-name.png'
+                                        value={mapping.imageFile || ''}
                                         onChange={e =>
-                                          updateWhisperInfo(
+                                          updateSenderImage(
                                             mapping.sender,
-                                            e.target.value,
-                                            mapping.whisperTo || ''
-                                          )
-                                        }
-                                        className='w-48 text-sm'
-                                      />
-                                    </div>
-                                    <div className='flex flex-col gap-1'>
-                                      <Label className='text-xs text-muted-foreground'>
-                                        수신자
-                                      </Label>
-                                      <Input
-                                        placeholder='누구에게 보냈나요?'
-                                        value={mapping.whisperTo || ''}
-                                        onChange={e =>
-                                          updateWhisperInfo(
-                                            mapping.sender,
-                                            mapping.whisperFrom || '',
                                             e.target.value
                                           )
                                         }
                                         className='w-48 text-sm'
                                       />
-                                    </div>
-                                  </>
-                                )}
-
-                                {mapping.type === 'character' && (
-                                  <div className='flex flex-col gap-1'>
-                                    <Label className='text-xs text-muted-foreground'>
-                                      이미지 파일명
-                                    </Label>
-                                    <Input
-                                      placeholder='character-name.png'
-                                      value={mapping.imageFile || ''}
-                                      onChange={e =>
-                                        updateSenderImage(
-                                          mapping.sender,
-                                          e.target.value
-                                        )
-                                      }
-                                      className='w-48 text-sm'
-                                    />
-                                    <div className='text-xs text-muted-foreground'>
-                                      public/assets/ 폴더 기준
-                                    </div>
-                                    {mapping.avatarUrl && (
-                                      <Button
-                                        type='button'
-                                        variant='ghost'
-                                        size='sm'
-                                        className='text-xs h-6 px-2 justify-start'
-                                        onClick={() => {
-                                          if (mapping.avatarUrl) {
-                                            navigator.clipboard.writeText(
-                                              mapping.avatarUrl
-                                            );
-                                            alert('원본 URL이 복사되었습니다!');
-                                          }
-                                        }}
-                                      >
-                                        원본 URL 복사
-                                      </Button>
-                                    )}
-                                  </div>
-                                )}
-
-                                {/* 아바타 URL 입력 필드 */}
-                                {!mapping.markedForDeletion && (mapping.type === 'character' || mapping.type === 'ooc' || mapping.type === 'whisper') && (
-                                  <div className='flex flex-col gap-1'>
-                                    <Label className='text-xs text-muted-foreground'>
-                                      아바타 URL (선택사항)
-                                    </Label>
-                                    <Input
-                                      placeholder='https://example.com/avatar.png'
-                                      value={mapping.customAvatarUrl || ''}
-                                      onChange={e =>
-                                        updateCustomAvatarUrl(
-                                          mapping.sender,
-                                          e.target.value
-                                        )
-                                      }
-                                      className='w-48 text-sm'
-                                    />
-                                    <div className='text-xs text-muted-foreground'>
-                                      원본보다 우선 적용됩니다
-                                    </div>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 메시지 미리보기 */}
-                        {mapping.expanded && (
-                          <div className='border-t bg-gray-50 dark:bg-gray-900/20 p-3'>
-                            <div className='text-sm font-medium mb-2'>
-                              메시지 미리보기:
-                            </div>
-                            <div className='space-y-2 max-h-48 overflow-y-auto'>
-                              {getSenderMessages(mapping.sender, 5).map(
-                                (msg, msgIndex) => (
-                                  <div
-                                    key={msgIndex}
-                                    className='p-2 bg-white dark:bg-gray-800 rounded text-xs'
-                                  >
-                                    <div className='text-muted-foreground mb-1'>
-                                      {(msg as any).time || '시간 없음'}
-                                    </div>
-                                    <div className='truncate'>
-                                      {(msg.content || '내용 없음').substring(
-                                        0,
-                                        100
+                                      <div className='text-xs text-muted-foreground'>
+                                        public/assets/ 폴더 기준
+                                      </div>
+                                      {mapping.avatarUrl && (
+                                        <Button
+                                          type='button'
+                                          variant='ghost'
+                                          size='sm'
+                                          className='text-xs h-6 px-2 justify-start'
+                                          onClick={() => {
+                                            if (mapping.avatarUrl) {
+                                              navigator.clipboard.writeText(
+                                                mapping.avatarUrl
+                                              );
+                                              alert(
+                                                '원본 URL이 복사되었습니다!'
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          원본 URL 복사
+                                        </Button>
                                       )}
-                                      {(msg.content?.length || 0) > 100
-                                        ? '...'
-                                        : ''}
                                     </div>
-                                  </div>
-                                )
-                              )}
-                              {getSenderMessages(mapping.sender).length ===
-                                0 && (
-                                <div className='text-muted-foreground text-xs'>
-                                  메시지를 찾을 수 없습니다.
-                                </div>
+                                  )}
+
+                                  {/* 아바타 URL 입력 필드 */}
+                                  {!mapping.markedForDeletion &&
+                                    (mapping.type === 'character' ||
+                                      mapping.type === 'ooc' ||
+                                      mapping.type === 'whisper') && (
+                                      <div className='flex flex-col gap-1'>
+                                        <Label className='text-xs text-muted-foreground'>
+                                          아바타 URL (선택사항)
+                                        </Label>
+                                        <Input
+                                          placeholder='https://example.com/avatar.png'
+                                          value={mapping.customAvatarUrl || ''}
+                                          onChange={e =>
+                                            updateCustomAvatarUrl(
+                                              mapping.sender,
+                                              e.target.value
+                                            )
+                                          }
+                                          className='w-48 text-sm'
+                                        />
+                                        <div className='text-xs text-muted-foreground'>
+                                          원본보다 우선 적용됩니다
+                                        </div>
+                                      </div>
+                                    )}
+                                </>
                               )}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-      </Tabs>
+                          {/* 메시지 미리보기 */}
+                          {mapping.expanded && (
+                            <div className='border-t bg-gray-50 dark:bg-gray-900/20 p-3'>
+                              <div className='text-sm font-medium mb-2'>
+                                메시지 미리보기:
+                              </div>
+                              <div className='space-y-2 max-h-48 overflow-y-auto'>
+                                {getSenderMessages(mapping.sender, 5).map(
+                                  (msg, msgIndex) => (
+                                    <div
+                                      key={msgIndex}
+                                      className='p-2 bg-white dark:bg-gray-800 rounded text-xs'
+                                    >
+                                      <div className='text-muted-foreground mb-1'>
+                                        {(msg as any).time || '시간 없음'}
+                                      </div>
+                                      <div className='truncate'>
+                                        {(msg.content || '내용 없음').substring(
+                                          0,
+                                          100
+                                        )}
+                                        {(msg.content?.length || 0) > 100
+                                          ? '...'
+                                          : ''}
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+                                {getSenderMessages(mapping.sender).length ===
+                                  0 && (
+                                  <div className='text-muted-foreground text-xs'>
+                                    메시지를 찾을 수 없습니다.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );
