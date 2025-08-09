@@ -54,7 +54,7 @@ export default function HomePage() {
         setLoading(false);
       }
     };
-    
+
     loadPosts();
   }, []);
 
@@ -108,18 +108,12 @@ export default function HomePage() {
         <div className='container mx-auto px-4 py-4 max-w-6xl'>
           <div className='flex items-center justify-between'>
             <h1 className='text-2xl font-bold'>TRPG 로그 아카이브</h1>
-            <div className='flex gap-2'>
+            <Button asChild>
               <Link href='/parse'>
-                <Button variant='outline'>
-                  <Plus className='w-4 h-4 mr-2' />로그 파서
-                </Button>
+                <Plus className='w-4 h-4 mr-2' />
+                로그 파서
               </Link>
-              <Link href='/write'>
-                <Button>
-                  <Plus className='w-4 h-4 mr-2' />새 로그 작성
-                </Button>
-              </Link>
-            </div>
+            </Button>
           </div>
         </div>
       </header>
