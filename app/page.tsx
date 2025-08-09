@@ -1,6 +1,6 @@
 'use client';
 
-import { Grid, List, Search, Lock } from 'lucide-react';
+import { Grid, List, Search, Lock, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import { Header } from '@/components/header';
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -26,6 +27,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   useKeyboardShortcuts,
   createCommonShortcuts,
 } from '@/hooks/use-keyboard-shortcuts';
@@ -38,7 +44,9 @@ export default function HomePage() {
   const tagSelectRef = useRef<HTMLButtonElement>(null);
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedTag, setSelectedTag] = useState<string>('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedRule, setSelectedRule] = useState<string>('all');
+  const [selectedPlayerCount, setSelectedPlayerCount] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +68,8 @@ export default function HomePage() {
   }, []);
 
   const allTags = Array.from(new Set(posts.flatMap(post => post.tags)));
+  const allRules = Array.from(new Set(posts.map(post => post.sessionInfo.rule)));
+  const allPlayerCounts = Array.from(new Set(posts.map(post => post.sessionInfo.playerCount.toString()))).sort((a, b) => parseInt(a) - parseInt(b));
 
   const shortcuts = [
     ...createCommonShortcuts(router),
@@ -82,7 +92,9 @@ export default function HomePage() {
       key: 'r',
       action: () => {
         setSearchQuery('');
-        setSelectedTag('all');
+        setSelectedTags([]);
+        setSelectedRule('all');
+        setSelectedPlayerCount('all');
       },
       description: 'R - 필터 초기화',
     },
@@ -91,11 +103,13 @@ export default function HomePage() {
   useKeyboardShortcuts(shortcuts);
 
   const filteredPosts = posts.filter(post => {
-    const matchesTag = selectedTag === 'all' || post.tags.includes(selectedTag);
+    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => post.tags.includes(tag));
+    const matchesRule = selectedRule === 'all' || post.sessionInfo.rule === selectedRule;
+    const matchesPlayerCount = selectedPlayerCount === 'all' || post.sessionInfo.playerCount.toString() === selectedPlayerCount;
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTag && matchesSearch;
+    return matchesTags && matchesRule && matchesPlayerCount && matchesSearch;
   });
 
   if (loading) {
@@ -119,20 +133,89 @@ export default function HomePage() {
               className='pl-10'
             />
           </div>
-
-          <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger ref={tagSelectRef} className='w-full md:w-48'>
-              <SelectValue placeholder='태그 선택' />
+          <Select value={selectedRule} onValueChange={setSelectedRule}>
+            <SelectTrigger className='w-full md:w-48'>
+              <SelectValue placeholder='룰 선택' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>모든 태그</SelectItem>
-              {allTags.map(tag => (
-                <SelectItem key={tag} value={tag}>
-                  {tag}
+              <SelectItem value='all'>모든 룰</SelectItem>
+              {allRules.map(rule => (
+                <SelectItem key={rule} value={rule}>
+                  {rule}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={selectedPlayerCount} onValueChange={setSelectedPlayerCount}>
+            <SelectTrigger className='w-full md:w-32'>
+              <SelectValue placeholder='인원 선택' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>모든 인원</SelectItem>
+              {allPlayerCounts.map(count => (
+                <SelectItem key={count} value={count}>
+                  {count}명
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                ref={tagSelectRef}
+                variant="outline" 
+                className='w-full md:w-48 justify-between'
+              >
+                {selectedTags.length === 0 
+                  ? '태그 선택' 
+                  : selectedTags.length === 1 
+                    ? selectedTags[0] 
+                    : `${selectedTags.length}개 태그 선택`
+                }
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className='w-48'>
+              <div className='space-y-2'>
+                {allTags.map(tag => (
+                  <div key={tag} className='flex items-center space-x-2'>
+                    <Checkbox
+                      id={`tag-${tag}`}
+                      checked={selectedTags.includes(tag)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedTags(prev => [...prev, tag]);
+                        } else {
+                          setSelectedTags(prev => prev.filter(t => t !== tag));
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`tag-${tag}`}
+                      className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                    >
+                      {tag}
+                    </label>
+                  </div>
+                ))}
+                {selectedTags.length > 0 && (
+                  <>
+                    <hr className='my-2' />
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setSelectedTags([])}
+                      className='w-full'
+                    >
+                      모든 태그 해제
+                    </Button>
+                  </>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <div className='flex border rounded-lg'>
             <Button
@@ -175,6 +258,14 @@ export default function HomePage() {
                     )}
                   </div>
                   <CardHeader className='pb-2'>
+                    <div className='flex flex-wrap gap-1 mb-2'>
+                      <Badge variant='default' className='text-xs'>
+                        {post.sessionInfo.rule}
+                      </Badge>
+                      <Badge variant='outline' className='text-xs'>
+                        {post.sessionInfo.playerCount}명
+                      </Badge>
+                    </div>
                     <CardTitle className='text-lg line-clamp-2'>
                       {post.title}
                     </CardTitle>
@@ -224,6 +315,14 @@ export default function HomePage() {
                         )}
                       </div>
                       <div className='flex-1 min-w-0'>
+                        <div className='flex flex-wrap gap-1 mb-2'>
+                          <Badge variant='default' className='text-xs'>
+                            {post.sessionInfo.rule}
+                          </Badge>
+                          <Badge variant='outline' className='text-xs'>
+                            {post.sessionInfo.playerCount}명
+                          </Badge>
+                        </div>
                         <h3 className='font-semibold text-lg mb-1 line-clamp-1'>
                           {post.title}
                         </h3>
