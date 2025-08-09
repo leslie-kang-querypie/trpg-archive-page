@@ -1,11 +1,11 @@
 'use client';
 
-import { ArrowLeft, Eye, Lock, Unlock, FileText } from 'lucide-react';
+import { Eye, Lock, Unlock, FileText } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
 
+import { Header } from '@/components/header';
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help';
 import { ReadingSettingsModal } from '@/components/reading-settings-modal';
 
@@ -145,20 +145,8 @@ export default function PostPage() {
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      <header className='border-b bg-card'>
-        <div className='container mx-auto px-4 py-4 max-w-6xl'>
-          <div className='flex items-center gap-4'>
-            <Link href='/'>
-              <Button variant='ghost' size='sm'>
-                <ArrowLeft className='w-4 h-4 mr-2' />
-                목록으로
-              </Button>
-            </Link>
-            <h1 className='text-xl font-semibold'>TRPG 로그 상세</h1>
-          </div>
-        </div>
-      </header>
+    <>
+      <Header title="TRPG 로그 상세" showBackButton />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         <Card className='mb-6'>
@@ -281,6 +269,6 @@ export default function PostPage() {
       />
 
       <KeyboardShortcutsHelp shortcuts={shortcuts} />
-    </div>
+    </>
   );
 }

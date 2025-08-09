@@ -6,13 +6,13 @@ import {
   Code,
   FileText,
   Settings,
-  User,
   MessageSquare,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { Header } from '@/components/header';
 import { ScriptLogViewer } from '@/components/script-log-viewer';
 import { LogEntry } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -638,14 +638,16 @@ link.click();`;
   };
 
   return (
-    <div className='container mx-auto p-6 max-w-6xl'>
-      <div className='mb-6'>
-        <h1 className='text-3xl font-bold mb-2'>TRPG 채팅 로그 파서</h1>
-        <p className='text-muted-foreground'>
-          Roll20이나 다른 플랫폼에서 추출한 채팅 로그를 분석하고 JSON 형태로
-          변환합니다.
-        </p>
-      </div>
+    <>
+      <Header title="TRPG 채팅 로그 파서" showBackButton />
+
+      <div className='container mx-auto px-4 py-6 max-w-6xl'>
+        <div className='mb-6'>
+          <p className='text-muted-foreground'>
+            Roll20이나 다른 플랫폼에서 추출한 채팅 로그를 분석하고 JSON 형태로
+            변환합니다.
+          </p>
+        </div>
 
       <Tabs
         value={currentTab}
@@ -1142,6 +1144,7 @@ link.click();`;
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }

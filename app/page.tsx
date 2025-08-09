@@ -1,11 +1,12 @@
 'use client';
 
-import { Grid, List, Search, Plus, Eye, Lock } from 'lucide-react';
+import { Grid, List, Search, Eye, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
 
+import { Header } from '@/components/header';
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -102,21 +103,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      {/* Header */}
-      <header className='border-b bg-card'>
-        <div className='container mx-auto px-4 py-4 max-w-6xl'>
-          <div className='flex items-center justify-between'>
-            <h1 className='text-2xl font-bold'>TRPG 로그 아카이브</h1>
-            <Button asChild>
-              <Link href='/parse'>
-                <Plus className='w-4 h-4 mr-2' />
-                로그 파서
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <>
+      <Header title="TRPG 로그 아카이브" showParseButton />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         {/* Controls */}
@@ -282,6 +270,6 @@ export default function HomePage() {
 
       {/* 키보드 단축키 도움말 */}
       <KeyboardShortcutsHelp shortcuts={shortcuts} />
-    </div>
+    </>
   );
 }
