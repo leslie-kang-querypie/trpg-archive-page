@@ -1,0 +1,60 @@
+{
+  "id": "session-2",
+  "title": "2세션: 드래곤과의 만남",
+  "description": "드래곤의 둥지에 도착한 모험가들이 전설의 드래곤과 마주하는 이야기",
+  "content": [
+    {
+      "id": 1,
+      "type": "system",
+      "content": "거대한 동굴 입구. 뜨거운 공기가 안쪽에서 흘러나온다."
+    },
+    {
+      "id": 2,
+      "type": "character",
+      "character": "실바나",
+      "content": "조심스럽게 앞서 나가며 \"함정은 없는 것 같아요.\""
+    },
+    {
+      "id": 3,
+      "type": "character",
+      "character": "아라곤",
+      "content": "검을 뽑으며 \"모두 준비하라. 드래곤이 가까이 있다.\""
+    },
+    {
+      "id": 4,
+      "type": "system",
+      "content": "갑자기 동굴 깊숙한 곳에서 거대한 눈이 번쩍였다. 붉은 드래곤이 깨어났다!"
+    },
+    {
+      "id": 5,
+      "type": "character",
+      "character": "드래곤",
+      "content": "\"누가 감히 내 잠을 깨우는가!\" 위협적인 목소리가 동굴을 울린다."
+    },
+    {
+      "id": 6,
+      "type": "character",
+      "character": "토린",
+      "content": "방패를 들며 \"신이여, 우리를 보호하소서!\""
+    },
+    {
+      "id": 7,
+      "type": "dice",
+      "character": "아라곤",
+      "content": "드래곤에게 검으로 공격한다.",
+      "diceResult": {
+        "dice": "1d20+5",
+        "result": 18,
+        "rolls": [13],
+        "modifier": 5,
+        "success": true,
+        "difficulty": 15
+      }
+    },
+    {
+      "id": 8,
+      "type": "system",
+      "content": "아라곤의 검이 드래곤의 비늘을 베었다! 드래곤이 분노에 찬 포효를 내지른다."
+    }
+  ]
+}

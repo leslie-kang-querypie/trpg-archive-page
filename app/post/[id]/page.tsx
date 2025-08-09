@@ -80,13 +80,12 @@ export default function PostPage() {
     }
   };
 
-  const handleOocPasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOocPasswordSubmit = (password: string) => {
     if (!post) return;
     
     const oocPassword = post.oocPassword || post.password; // oocPassword가 없으면 기본 password 사용
     
-    if (oocPasswordInput === oocPassword) {
+    if (password === oocPassword) {
       setOocUnlocked(true);
       setOocError('');
       setOocPasswordInput(''); // 비밀번호 입력 필드 초기화
@@ -209,7 +208,7 @@ export default function PostPage() {
           </CardContent>
         </Card>
 
-        {!isUnlocked ? (
+{post.isPrivate && !isUnlocked ? (
           <Card>
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
@@ -254,6 +253,39 @@ export default function PostPage() {
               </div>
             </CardContent>
           </Card>
+        ) : !post.isPrivate && !isUnlocked ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <FileText className='w-5 h-5' />
+                세션 로그
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-4'>
+                <div>
+                  <h4 className='text-lg font-medium flex items-center gap-2 mb-2'>
+                    <FileText className='w-5 h-5' />
+                    세션 로그를 확인하세요
+                  </h4>
+                  <p className='text-sm text-muted-foreground'>
+                    아래 버튼을 클릭하여 세션 로그를 볼 수 있습니다.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setIsUnlocked(true);
+                    if (post.subPosts.length > 0) {
+                      setActiveSubPostId(post.subPosts[0].id);
+                    }
+                  }}
+                >
+                  <FileText className='w-4 h-4 mr-2' />
+                  세션 로그 보기
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className='space-y-6'>
             <SubPostNavigation
@@ -270,8 +302,6 @@ export default function PostPage() {
               post={post}
               oocUnlocked={oocUnlocked}
               onOocPasswordSubmit={handleOocPasswordSubmit}
-              oocPasswordInput={oocPasswordInput}
-              setOocPasswordInput={setOocPasswordInput}
               oocError={oocError}
             />
           </div>

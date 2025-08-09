@@ -1,0 +1,41 @@
+{
+  "id": "session-1",
+  "title": "1세션: 모험의 시작",
+  "description": "네 명의 모험가가 만나 드래곤의 둥지를 향해 출발하는 이야기",
+  "content": [
+    {
+      "id": 1,
+      "type": "system",
+      "content": "어둠이 내린 여관. 벽난로의 따뜻한 불빛 아래 네 명의 모험가가 모였다."
+    },
+    {
+      "id": 2,
+      "type": "character",
+      "character": "아라곤",
+      "content": "검을 손질하며 다른 이들을 바라본다. \"모두 준비는 됐나?\""
+    },
+    {
+      "id": 3,
+      "type": "character",
+      "character": "엘레나",
+      "content": "마법서를 덮으며 고개를 끄덕인다. \"필요한 주문들은 모두 준비했어요.\""
+    },
+    {
+      "id": 4,
+      "type": "character",
+      "character": "토린",
+      "content": "성스러운 기호에 입맞추며 \"신의 가호가 함께하길.\""
+    },
+    {
+      "id": 5,
+      "type": "character",
+      "character": "실바나",
+      "content": "단검을 돌리며 웃는다. \"그럼 이제 출발할 시간이네!\""
+    },
+    {
+      "id": 6,
+      "type": "system",
+      "content": "네 모험가는 드래곤의 둥지를 향해 여관을 떠났다. 달빛이 그들의 길을 비추고 있었다."
+    }
+  ]
+}
