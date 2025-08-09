@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, RotateCcw, Upload, FileText, Plus, X, ChevronRight } from 'lucide-react';
+import { Stepper } from '@/components/ui/steps';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
@@ -15,64 +16,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 
-// 단계 표시 컴포넌트
-function StepsIndicator({ 
-  currentStep, 
-  onStepClick 
-}: { 
-  currentStep: 'select' | 'edit';
-  onStepClick: (step: 'select' | 'edit') => void;
-}) {
-  const steps = [
-    { key: 'select' as const, number: 1, label: '범위 선택' },
-    { key: 'edit' as const, number: 2, label: '로그 편집' }
-  ];
-
-  return (
-    <div className="flex items-center justify-center py-6 mb-8">
-      <div className="flex items-center">
-        {steps.map((step, index) => {
-          const isCompleted = step.key === 'select' && currentStep === 'edit';
-          const isCurrent = step.key === currentStep;
-          const isClickable = step.key === 'select' || (step.key === 'edit' && currentStep === 'edit');
-          
-          return (
-            <div key={step.key} className="flex items-center">
-              <button
-                onClick={() => isClickable && onStepClick(step.key)}
-                disabled={!isClickable}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isCompleted
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
-                    : isCurrent
-                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  isCompleted
-                    ? 'bg-white text-blue-600'
-                    : isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-300 text-white'
-                }`}>
-                  {isCompleted ? '✓' : step.number}
-                </div>
-                <span className="font-medium">{step.label}</span>
-              </button>
-              
-              {index < steps.length - 1 && (
-                <div className={`mx-4 h-px w-12 ${
-                  isCompleted ? 'bg-blue-400' : 'bg-gray-300'
-                }`} />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // 범위 선택 컴포넌트
 interface RangeSelectionViewerProps {
@@ -1004,18 +947,33 @@ export default function EditPage() {
     <>
       <Header title="TRPG 로그 편집기" showBackButton />
       
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* 단계 표시 UI */}
         {hasData && (
-          <StepsIndicator 
-            currentStep={currentStep} 
-            onStepClick={(step) => {
-              if (step === 'select') {
-                backToSelect();
-              }
-              // edit 단계는 proceedToEdit를 통해서만 이동
-            }}
-          />
+          <div className='flex justify-center py-6'>
+            <Stepper
+              steps={[
+                {
+                  id: 'select',
+                  title: '범위 선택',
+                  description: '편집할 로그 범위 설정'
+                },
+                {
+                  id: 'edit',
+                  title: '로그 편집',
+                  description: '선택한 로그 편집'
+                }
+              ]}
+              currentStep={currentStep === 'select' ? 0 : 1}
+              onStepClick={(stepIndex) => {
+                if (stepIndex === 0) {
+                  backToSelect();
+                }
+                // edit 단계는 proceedToEdit를 통해서만 이동
+              }}
+              className='max-w-2xl'
+            />
+          </div>
         )}
 
         <div className="mb-6">

@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Stepper } from '@/components/ui/steps';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function ParsePage() {
@@ -41,7 +41,25 @@ export default function ParsePage() {
   const [parsedData, setParsedData] = useState<ParsedMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [senderMappings, setSenderMappings] = useState<SenderMapping[]>([]);
-  const [currentTab, setCurrentTab] = useState('script');
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const steps = [
+    {
+      id: 'script',
+      title: '스크립트 복사',
+      description: '브라우저에서 실행'
+    },
+    {
+      id: 'parse',
+      title: '데이터 파싱',
+      description: 'JSON 분석'
+    },
+    {
+      id: 'mapping',
+      title: '타입 매핑',
+      description: '발신자 설정'
+    }
+  ];
 
   const originalScript = `// Roll20 메시지 파싱 개선 버전
 const messages = Array.from(document.querySelectorAll('.message'));
@@ -323,7 +341,7 @@ link.click();`;
           .sort((a, b) => b.count - a.count);
 
         setSenderMappings(mappings);
-        setCurrentTab('mapping');
+        setCurrentStep(2);
       } else {
         throw new Error('올바른 배열 형태가 아닙니다.');
       }
@@ -582,31 +600,24 @@ link.click();`;
           </p>
         </div>
 
-        <Tabs
-          value={currentTab}
-          onValueChange={setCurrentTab}
-          className='space-y-6'
-        >
-          <TabsList className='grid w-full grid-cols-3'>
-            <TabsTrigger value='script' className='flex items-center gap-2'>
-              <Code className='h-4 w-4' />
-              원본 스크립트
-            </TabsTrigger>
-            <TabsTrigger value='parse' className='flex items-center gap-2'>
-              <FileText className='h-4 w-4' />
-              로그 파싱
-            </TabsTrigger>
-            <TabsTrigger
-              value='mapping'
-              className='flex items-center gap-2'
-              disabled={senderMappings.length === 0}
-            >
-              <Settings className='h-4 w-4' />
-              타입 매핑
-            </TabsTrigger>
-          </TabsList>
+        <div className='space-y-8'>
+          <div className='flex justify-center py-6'>
+            <Stepper
+              steps={steps}
+              currentStep={currentStep}
+              onStepClick={(stepIndex) => {
+                // 이전 단계나 현재 단계로만 이동 가능
+                if (stepIndex <= currentStep || 
+                    (stepIndex === 1 && rawData.trim()) || 
+                    (stepIndex === 2 && senderMappings.length > 0)) {
+                  setCurrentStep(stepIndex);
+                }
+              }}
+              className='max-w-2xl'
+            />
+          </div>
 
-          <TabsContent value='script'>
+          {currentStep === 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -619,6 +630,14 @@ link.click();`;
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
+                <div className='flex justify-end mb-4'>
+                  <Button
+                    onClick={() => setCurrentStep(1)}
+                    className='flex items-center gap-2'
+                  >
+                    다음 단계
+                  </Button>
+                </div>
                 <div className='relative'>
                   <pre className='bg-muted p-4 rounded-lg text-sm overflow-x-auto font-mono'>
                     <code>{originalScript}</code>
@@ -640,6 +659,7 @@ link.click();`;
                     <li>Console 탭으로 이동합니다</li>
                     <li>위 스크립트를 복사해서 붙여넣고 Enter를 누릅니다</li>
                     <li>자동으로 개선된 JSON 파일이 다운로드됩니다</li>
+                    <li>다운로드된 파일을 다음 단계에서 업로드하세요</li>
                   </ol>
                   <div className='mt-3 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800'>
                     <p className='text-xs text-amber-700 dark:text-amber-300'>
@@ -657,9 +677,9 @@ link.click();`;
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value='parse'>
+          {currentStep === 1 && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -672,7 +692,14 @@ link.click();`;
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-wrap'>
+                  <Button
+                    onClick={() => setCurrentStep(0)}
+                    variant='outline'
+                    className='flex items-center gap-2'
+                  >
+                    이전 단계
+                  </Button>
                   <Button
                     onClick={() =>
                       document.getElementById('file-upload')?.click()
@@ -695,7 +722,7 @@ link.click();`;
                     disabled={isProcessing || !rawData.trim()}
                     className='flex items-center gap-2'
                   >
-                    {isProcessing ? '처리 중...' : '파싱 실행'}
+                    {isProcessing ? '처리 중...' : '파싱 실행 및 다음 단계'}
                   </Button>
                 </div>
 
@@ -713,9 +740,9 @@ link.click();`;
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value='mapping'>
+          {currentStep === 2 && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -735,6 +762,13 @@ link.click();`;
                         총 {senderMappings.length}명의 발신자
                       </div>
                       <div className='flex gap-2'>
+                        <Button
+                          onClick={() => setCurrentStep(1)}
+                          variant='outline'
+                          size='sm'
+                        >
+                          이전 단계
+                        </Button>
                         <Button
                           onClick={loadMappingPreset}
                           variant='outline'
@@ -1020,8 +1054,8 @@ link.click();`;
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </>
   );
