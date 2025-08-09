@@ -654,7 +654,7 @@ function EditableLogViewer({
   };
 
   return (
-    <div className='flex flex-col gap-1 h-full overflow-y-auto relative'>
+    <div className='flex flex-col gap-1 relative'>
       {filteredEntries.map((entry, index) => (
         <div key={`${entry.id}-${entries.indexOf(entry)}`} className="relative">
           {/* 삽입 버튼 - 로그 항목들 사이의 gap 중앙에 위치 */}
@@ -710,6 +710,7 @@ export default function EditPage() {
   const [selectedLogType, setSelectedLogType] = useState<string>('');
   const [insertIndex, setInsertIndex] = useState<number>(-1);
   const [newEntryData, setNewEntryData] = useState<Partial<LogEntry>>({});
+  const [showRawJson, setShowRawJson] = useState(false);
   
   // 단계 관련 상태
   const [currentStep, setCurrentStep] = useState<'upload' | 'select' | 'edit'>('upload');
@@ -776,12 +777,17 @@ export default function EditPage() {
     const selectedEntries = parsedEntries.slice(rangeStart, rangeEnd + 1);
     setEditingEntries(selectedEntries);
     setCurrentStep('edit');
+    
+    // 편집 모드 진입 시 기본 설정
+    setShowOOC(true); // 사담 ON
+    // 사이드바는 기본으로 열지 않고 필요할 때만 열기
   };
 
   const backToSelect = () => {
     setCurrentStep('select');
     setEditingEntries([]);
     setShowSidebar(false);
+    setShowOOC(false); // 편집 모드 벗어날 때 사담 OFF
   };
 
   const backToUpload = () => {
@@ -790,6 +796,7 @@ export default function EditPage() {
     setHasData(false);
     setEditingEntries([]);
     setShowSidebar(false);
+    setShowOOC(false); // 처음으로 돌아갈 때 사담 OFF
   };
 
   const saveEditedEntries = () => {
@@ -872,6 +879,8 @@ export default function EditPage() {
     setParsedEntries([]);
     setHasData(false);
     setCurrentStep('upload');
+    setShowSidebar(false);
+    setShowOOC(false);
     localStorage.removeItem('trpg_editing_data');
   };
 
@@ -960,7 +969,7 @@ export default function EditPage() {
       
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* 단계 표시 UI */}
-        <div className='flex justify-center py-6'>
+        <div className='flex justify-center'>
           <Stepper
             steps={[
               {
@@ -1122,31 +1131,56 @@ export default function EditPage() {
                         선택한 {editingEntries.length}개의 로그를 편집합니다. 각 항목을 클릭하여 편집하거나 + 버튼으로 새 항목을 추가하세요.
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="ooc-toggle-edit" className="text-sm font-medium">
-                        사담
-                      </Label>
-                      <Switch
-                        id="ooc-toggle-edit"
-                        checked={showOOC}
-                        onCheckedChange={setShowOOC}
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {showOOC ? 'ON' : 'OFF'}
-                      </span>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="ooc-toggle-edit" className="text-sm font-medium">
+                          사담
+                        </Label>
+                        <Switch
+                          id="ooc-toggle-edit"
+                          checked={showOOC}
+                          onCheckedChange={setShowOOC}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {showOOC ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="raw-json-toggle" className="text-sm font-medium">
+                          Raw JSON
+                        </Label>
+                        <Switch
+                          id="raw-json-toggle"
+                          checked={showRawJson}
+                          onCheckedChange={setShowRawJson}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {showRawJson ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 overflow-hidden p-4">
-                  <EditableLogViewer
-                    entries={editingEntries}
-                    characters={characters}
-                    settings={defaultReadingSettings}
-                    showOOC={showOOC}
-                    onEntryEdit={handleEntryEdit}
-                    onEntryDelete={handleEntryDelete}
-                    onInsertRequest={handleInsertRequest}
-                  />
+                  {showRawJson ? (
+                    <div className="h-full flex flex-col">
+                      <div className="flex-1 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-auto">
+                        <pre className="text-xs font-mono whitespace-pre-wrap">
+                          {JSON.stringify(editingEntries, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <EditableLogViewer
+                      entries={editingEntries}
+                      characters={characters}
+                      settings={defaultReadingSettings}
+                      showOOC={showOOC}
+                      onEntryEdit={handleEntryEdit}
+                      onEntryDelete={handleEntryDelete}
+                      onInsertRequest={handleInsertRequest}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
