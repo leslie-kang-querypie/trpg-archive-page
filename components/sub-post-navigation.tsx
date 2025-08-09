@@ -10,21 +10,21 @@ interface SubPost {
   content: any[];
 }
 
-interface SubPostSidebarProps {
+interface SubPostNavigationProps {
   subPosts: SubPost[];
   activeSubPostId: string | null;
   onSubPostSelect: (id: string) => void;
   onSettingsClick: () => void;
 }
 
-export function SubPostSidebar({
+export function SubPostNavigation({
   subPosts,
   activeSubPostId,
   onSubPostSelect,
   onSettingsClick,
-}: SubPostSidebarProps) {
+}: SubPostNavigationProps) {
   return (
-    <div className='w-80 border bg-card rounded-lg sticky top-6'>
+    <div className='border bg-card rounded-lg'>
       <div className='p-4 border-b'>
         <div className='flex items-center justify-between'>
           <h3 className='font-semibold flex items-center gap-2'>
@@ -43,25 +43,25 @@ export function SubPostSidebar({
         </div>
       </div>
 
-      <ScrollArea className='h-[700px]'>
-        <div className='p-2 space-y-1'>
+      <ScrollArea className='max-h-80'>
+        <div className='p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2'>
           {subPosts.map((subPost, index) => (
             <Button
               key={subPost.id}
               variant={activeSubPostId === subPost.id ? 'secondary' : 'ghost'}
-              className='w-full justify-start h-auto p-3 text-left'
+              className='h-auto p-3 text-left justify-start'
               onClick={() => onSubPostSelect(subPost.id)}
             >
               <div className='flex items-start gap-3 w-full min-w-0'>
                 <div className='flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium'>
                   {index + 1}
                 </div>
-                <div className='flex-1 min-w-0'>
-                  <div className='font-medium text-sm truncate mb-1'>
+                <div className='flex-1 min-w-0 overflow-hidden'>
+                  <div className='font-medium text-sm mb-1 line-clamp-1'>
                     {subPost.title}
                   </div>
                   {subPost.description && (
-                    <div className='text-xs text-muted-foreground line-clamp-2 break-words'>
+                    <div className='text-xs text-muted-foreground line-clamp-2'>
                       {subPost.description}
                     </div>
                   )}

@@ -12,7 +12,6 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogEntry, Character, ReadingSettings } from '@/types';
 
 interface ScriptLogViewerProps {
@@ -20,6 +19,7 @@ interface ScriptLogViewerProps {
   characters: Character[];
   settings: ReadingSettings;
   entriesPerPage?: number;
+  showOOC?: boolean;
 }
 
 export function ScriptLogViewer({
@@ -27,28 +27,25 @@ export function ScriptLogViewer({
   characters,
   settings,
   entriesPerPage = 20,
+  showOOC = false,
 }: ScriptLogViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeFilter, setActiveFilter] = useState('ic');
 
   // 필터링된 엔트리들
   const getFilteredEntries = () => {
-    switch (activeFilter) {
-      case 'ic':
-        return entries.filter(entry =>
-          [
-            'system',
-            'character',
-            'whisper',
-            'dice',
-            'damage',
-            'handout',
-          ].includes(entry.type)
-        );
-      case 'all':
-        return entries;
-      default:
-        return entries;
+    if (showOOC) {
+      return entries; // 전체 표시
+    } else {
+      return entries.filter(entry =>
+        [
+          'system',
+          'character',
+          'whisper',
+          'dice',
+          'damage',
+          'handout',
+        ].includes(entry.type)
+      ); // OOC 제외
     }
   };
 
@@ -58,11 +55,6 @@ export function ScriptLogViewer({
   const endIndex = startIndex + entriesPerPage;
   const currentEntries = filteredEntries.slice(startIndex, endIndex);
 
-  // 필터 변경 시 페이지 초기화
-  const handleFilterChange = (filter: string) => {
-    setActiveFilter(filter);
-    setCurrentPage(1);
-  };
 
   const getCharacterInfo = (characterName: string) => {
     return characters.find(c => c.name === characterName);
@@ -198,9 +190,10 @@ export function ScriptLogViewer({
                     <AvatarImage
                       src={
                         characterInfo.thumbnail ||
-                        '/placeholder.svg?height=40&width=40&query=character'
+                        '/placeholder.svg?height=24&width=24&query=character'
                       }
                       alt={entry.character}
+                      className='object-cover'
                     />
                     <AvatarFallback className='bg-transparent border-0 text-xs'>
                       {entry.character.charAt(0)}
@@ -467,9 +460,10 @@ export function ScriptLogViewer({
                 <AvatarImage
                   src={
                     characterInfo.thumbnail ||
-                    '/placeholder.svg?height=40&width=40&query=character'
+                    '/placeholder.svg?height=28&width=28&query=character'
                   }
                   alt={entry.character}
+                  className='object-cover'
                   onError={e => {
                     console.log(
                       `Avatar failed to load for ${entry.character}:`,
@@ -588,9 +582,10 @@ export function ScriptLogViewer({
               <AvatarImage
                 src={
                   characterInfo.thumbnail ||
-                  '/placeholder.svg?height=40&width=40&query=character'
+                  '/placeholder.svg?height=28&width=28&query=character'
                 }
                 alt={firstEntry.character}
+                className='object-cover'
                 onError={e => {
                   console.log(
                     `Avatar failed to load for ${firstEntry.character}:`,
@@ -732,55 +727,41 @@ export function ScriptLogViewer({
 
   return (
     <div className='space-y-4'>
-      {/* 필터 탭 - IC가 기본, 전체가 두번째 */}
-      <Tabs
-        value={activeFilter}
-        onValueChange={handleFilterChange}
-        className='w-full'
-      >
-        <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='ic'>IC</TabsTrigger>
-          <TabsTrigger value='all'>전체</TabsTrigger>
-        </TabsList>
+      {/* 로그 내용 */}
+      <div className='min-h-96'>
+        <div className='space-y-0'>
+          {groupedEntries.map((item, index) => {
+            if (Array.isArray(item)) {
+              // 그룹인 경우 - OOC, System, Character 타입 확인
+              const firstEntry = item[0];
+              if (firstEntry.type === 'ooc') {
+                return formatOOCGroup(item, index);
+              } else if (firstEntry.type === 'system') {
+                return formatSystemGroup(item, index);
+              } else if (firstEntry.type === 'character') {
+                return formatCharacterGroup(item, index);
+              }
+              return null;
+            } else {
+              // 단일 로그인 경우
+              return formatEntry(item, index);
+            }
+          })}
+        </div>
 
-        <TabsContent value={activeFilter} className='mt-4'>
-          {/* 로그 내용 */}
-          <div className='min-h-96'>
-            <div className='space-y-0'>
-              {groupedEntries.map((item, index) => {
-                if (Array.isArray(item)) {
-                  // 그룹인 경우 - OOC, System, Character 타입 확인
-                  const firstEntry = item[0];
-                  if (firstEntry.type === 'ooc') {
-                    return formatOOCGroup(item, index);
-                  } else if (firstEntry.type === 'system') {
-                    return formatSystemGroup(item, index);
-                  } else if (firstEntry.type === 'character') {
-                    return formatCharacterGroup(item, index);
-                  }
-                  return null;
-                } else {
-                  // 단일 로그인 경우
-                  return formatEntry(item, index);
-                }
-              })}
-            </div>
-
-            {currentEntries.length === 0 && (
-              <div className='text-center py-12 text-muted-foreground'>
-                해당 필터에 표시할 내용이 없습니다.
-              </div>
-            )}
+        {currentEntries.length === 0 && (
+          <div className='text-center py-12 text-muted-foreground'>
+            표시할 내용이 없습니다.
           </div>
+        )}
+      </div>
 
-          {/* 페이지네이션 */}
-          {totalPages > 1 && (
-            <div className='flex items-center justify-center gap-1 pt-4 border-t'>
-              {renderPagination()}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className='flex items-center justify-center gap-1 pt-4 border-t'>
+          {renderPagination()}
+        </div>
+      )}
     </div>
   );
 }

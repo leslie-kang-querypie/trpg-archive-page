@@ -12,7 +12,7 @@ import { ReadingSettingsModal } from '@/components/reading-settings-modal';
 // 컴포넌트 imports
 import { SessionInfoTemplate } from '@/components/session-info-template';
 import { SubPostContent } from '@/components/sub-post-content';
-import { SubPostSidebar } from '@/components/sub-post-sidebar';
+import { SubPostNavigation } from '@/components/sub-post-navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -256,8 +256,8 @@ export default function PostPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className='flex gap-6'>
-            <SubPostSidebar
+          <div className='space-y-6'>
+            <SubPostNavigation
               subPosts={post.subPosts || []}
               activeSubPostId={activeSubPostId}
               onSubPostSelect={setActiveSubPostId}

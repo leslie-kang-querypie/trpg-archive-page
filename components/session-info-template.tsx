@@ -65,26 +65,26 @@ export function SessionInfoTemplate({ sessionInfo }: SessionInfoTemplateProps) {
       {/* 캐릭터 정보 */}
       <div className='space-y-3'>
         <h4 className='font-semibold'>참가 캐릭터</h4>
-        <div className='space-y-4'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {sessionInfo.characters.map((character, index) => (
-            <div key={index} className='flex gap-3 py-2'>
+            <div key={index} className='flex gap-4 py-3'>
               <Image
                 src={
                   character.thumbnail ||
-                  '/placeholder.svg?height=50&width=50&query=character'
+                  '/placeholder.svg?height=80&width=80&query=character'
                 }
                 alt={character.name}
-                width={50}
-                height={50}
-                className='rounded-full object-cover border flex-shrink-0'
+                width={80}
+                height={80}
+                className='w-[80px] h-[80px] rounded-full object-cover border flex-shrink-0'
               />
-              <div className='flex-1 text-sm'>
-                <div className='font-medium'>{character.name}</div>
-                <div className='text-muted-foreground mb-1'>
+              <div className='flex-1 text-sm min-w-0'>
+                <div className='font-medium truncate'>{character.name}</div>
+                <div className='text-muted-foreground mb-1 truncate'>
                   {character.class} • {character.player}
                 </div>
                 {character.description && (
-                  <div className='text-xs text-muted-foreground leading-relaxed'>
+                  <div className='text-xs text-muted-foreground leading-relaxed line-clamp-3'>
                     {character.description}
                   </div>
                 )}
