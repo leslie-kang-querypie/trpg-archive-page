@@ -1,4 +1,12 @@
-import { ArrowRight, Dice6, Heart, FileText, Lock } from 'lucide-react';
+import {
+  ArrowRight,
+  Dice6,
+  Heart,
+  FileText,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -91,15 +99,16 @@ export function ScriptLogViewer({
     };
 
     entries.forEach((entry, index) => {
-      const shouldGroup = 
-        entry.type === 'ooc' || 
-        entry.type === 'system' || 
+      const shouldGroup =
+        entry.type === 'ooc' ||
+        entry.type === 'system' ||
         entry.type === 'character';
 
       if (shouldGroup) {
-        const isSameGroup = 
+        const isSameGroup =
           currentGroupType === entry.type &&
-          (entry.type !== 'character' || currentGroupCharacter === entry.character);
+          (entry.type !== 'character' ||
+            currentGroupCharacter === entry.character);
 
         if (isSameGroup) {
           // 같은 그룹이면 추가
@@ -109,7 +118,8 @@ export function ScriptLogViewer({
           finishCurrentGroup();
           currentGroup = [entry];
           currentGroupType = entry.type;
-          currentGroupCharacter = entry.type === 'character' ? entry.character ?? null : null;
+          currentGroupCharacter =
+            entry.type === 'character' ? (entry.character ?? null) : null;
         }
       } else {
         // 그룹화하지 않는 타입이면 현재 그룹 완료 후 단일로 추가
@@ -161,10 +171,10 @@ export function ScriptLogViewer({
               marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
             }}
           >
-            <div 
+            <div
               className={`text-muted-foreground ${
                 settings.centerSystemMessages ? 'text-center' : ''
-              }`} 
+              }`}
               style={textStyle}
             >
               {entry.content}
@@ -534,14 +544,17 @@ export function ScriptLogViewer({
     const paragraphStyle = getParagraphSpacing();
 
     return (
-      <div key={key} style={{
-        ...paragraphStyle,
-        marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
-      }}>
-        <div 
+      <div
+        key={key}
+        style={{
+          ...paragraphStyle,
+          marginBottom: `${settings.paragraphSpacing * 0.75}rem`,
+        }}
+      >
+        <div
           className={`text-muted-foreground ${
             settings.centerSystemMessages ? 'text-center' : ''
-          }`} 
+          }`}
           style={textStyle}
         >
           {systemEntries.map((entry, index) => (
@@ -556,7 +569,10 @@ export function ScriptLogViewer({
   };
 
   // Character 그룹 처리 (같은 캐릭터의 연속 대사들을 하나로)
-  const formatCharacterGroup = (characterEntries: LogEntry[], groupIndex: number) => {
+  const formatCharacterGroup = (
+    characterEntries: LogEntry[],
+    groupIndex: number
+  ) => {
     const key = `character-group-${groupIndex}`;
     const textStyle = getTextStyle();
     const paragraphStyle = getParagraphSpacing();
@@ -566,8 +582,8 @@ export function ScriptLogViewer({
     return (
       <div key={key} className='flex gap-3' style={paragraphStyle}>
         {/* 아바타 */}
-        {settings.showAvatars && (
-          characterInfo ? (
+        {settings.showAvatars &&
+          (characterInfo ? (
             <Avatar className='w-7 h-7 flex-shrink-0'>
               <AvatarImage
                 src={
@@ -592,8 +608,7 @@ export function ScriptLogViewer({
             <div className='w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700'>
               {firstEntry.character?.charAt(0) || '?'}
             </div>
-          )
-        )}
+          ))}
 
         <div className='flex-1 min-w-0'>
           <div style={textStyle}>
@@ -639,7 +654,7 @@ export function ScriptLogViewer({
         onClick={() => goToPage(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        &lt;
+        <ChevronLeft className='w-4 h-4' />
       </Button>
     );
 
@@ -708,7 +723,7 @@ export function ScriptLogViewer({
         onClick={() => goToPage(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        &gt;
+        <ChevronRight className='w-4 h-4' />
       </Button>
     );
 
