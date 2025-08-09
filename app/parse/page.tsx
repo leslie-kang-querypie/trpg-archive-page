@@ -13,8 +13,7 @@ import {
 import { useState } from 'react';
 
 import { Header } from '@/components/header';
-import { ScriptLogViewer } from '@/components/script-log-viewer';
-import { LogEntry, ParsedMessage, SenderMapping, MESSAGE_TYPES } from '@/types';
+import { ParsedMessage, SenderMapping, MESSAGE_TYPES } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,7 +43,6 @@ export default function ParsePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [senderMappings, setSenderMappings] = useState<SenderMapping[]>([]);
   const [currentTab, setCurrentTab] = useState('script');
-  const [showOOC, setShowOOC] = useState(false);
 
   const originalScript = `// Roll20 메시지 파싱 개선 버전
 const messages = Array.from(document.querySelectorAll('.message'));
@@ -448,71 +446,16 @@ link.click();`;
       });
 
     setParsedData(enhancedData);
-    setCurrentTab('result');
+    
+    // JSON 데이터를 localStorage에 저장하고 편집 페이지로 이동
+    const dataToSave = {
+      parsedData: enhancedData,
+      senderMappings: filteredMappings
+    };
+    localStorage.setItem('trpg_editing_data', JSON.stringify(dataToSave));
+    window.location.href = '/edit';
   };
 
-  // ParsedMessage를 LogEntry로 변환
-  const convertToLogEntries = (): LogEntry[] => {
-    return parsedData.map((message, index) => {
-      const logEntry = {
-        type:
-          message.type === 'character'
-            ? 'character'
-            : message.type === 'system'
-              ? 'system'
-              : 'ooc',
-        character: message.type === 'system' ? undefined : message.sender,
-        content: message.content,
-      } as LogEntry;
-
-      return logEntry;
-    });
-  };
-
-  // 기본 캐릭터 설정 (파싱된 데이터에서 추출)
-  const getCharactersFromData = () => {
-    const characterSenders = senderMappings
-      .filter(mapping => mapping.type === 'character')
-      .map(mapping => {
-        // 아바타 URL 결정 - 원본 URL 우선, 없으면 assets 폴더, 마지막으로 기본값
-        let thumbnailUrl = '/placeholder-user.jpg';
-
-        // 1순위: 원본 아바타 URL (실제 존재하는 이미지)
-        if (
-          mapping.avatarUrl &&
-          !mapping.avatarUrl.includes('$0') &&
-          mapping.avatarUrl.trim() !== ''
-        ) {
-          thumbnailUrl = mapping.avatarUrl;
-        }
-        // 2순위: assets 폴더의 파일 (실제로 업로드된 경우에만)
-        else if (mapping.imageFile && mapping.imageFile.trim() !== '') {
-          thumbnailUrl = `/assets/${mapping.imageFile}`;
-        }
-
-        const character = {
-          name: mapping.sender,
-          player: '플레이어',
-          class: '모험가',
-          description: `${mapping.count}개의 메시지`,
-          thumbnail: thumbnailUrl,
-        };
-
-        console.log('Character created:', character);
-        return character;
-      });
-
-    console.log('All characters:', characterSenders);
-    return characterSenders;
-  };
-
-  const defaultReadingSettings = {
-    showAvatars: true,
-    fontSize: 14,
-    lineSpacing: 1.5,
-    paragraphSpacing: 2,
-    centerSystemMessages: false,
-  };
 
   const saveMappingPreset = () => {
     const preset = {
@@ -575,20 +518,6 @@ link.click();`;
     }
   };
 
-  const downloadParsedData = () => {
-    if (parsedData.length === 0) {
-      alert('파싱된 데이터가 없습니다.');
-      return;
-    }
-
-    const blob = new Blob([JSON.stringify(parsedData, null, 2)], {
-      type: 'application/json',
-    });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'trpg_chatlog_parsed.json';
-    link.click();
-  };
 
   const copyScriptToClipboard = async () => {
     try {
@@ -629,7 +558,7 @@ link.click();`;
         onValueChange={setCurrentTab}
         className='space-y-6'
       >
-        <TabsList className='grid w-full grid-cols-4'>
+        <TabsList className='grid w-full grid-cols-3'>
           <TabsTrigger value='script' className='flex items-center gap-2'>
             <Code className='h-4 w-4' />
             원본 스크립트
@@ -645,14 +574,6 @@ link.click();`;
           >
             <Settings className='h-4 w-4' />
             타입 매핑
-          </TabsTrigger>
-          <TabsTrigger
-            value='result'
-            className='flex items-center gap-2'
-            disabled={parsedData.length === 0}
-          >
-            <Download className='h-4 w-4' />
-            결과 확인
           </TabsTrigger>
         </TabsList>
 
@@ -804,7 +725,7 @@ link.click();`;
                         className='flex items-center gap-2'
                       >
                         <MessageSquare className='h-4 w-4' />
-                        매핑 적용하여 결과 보기
+                        로그 편집 페이지로 이동
                       </Button>
                     </div>
                   </div>
@@ -1032,108 +953,6 @@ link.click();`;
           </Card>
         </TabsContent>
 
-        <TabsContent value='result'>
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <FileText className='h-5 w-5' />
-                파싱 결과 - 스크립트 뷰어
-              </CardTitle>
-              <CardDescription>
-                파싱된 메시지들을 스크립트 형태로 확인하고 JSON으로 다운로드할
-                수 있습니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              {parsedData.length > 0 ? (
-                <>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-2'>
-                      <Badge variant='secondary'>
-                        총 {parsedData.length}개의 메시지
-                      </Badge>
-                      <Badge variant='outline'>
-                        {
-                          senderMappings.filter(m => m.type === 'character')
-                            .length
-                        }
-                        명의 캐릭터
-                      </Badge>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <div className='flex items-center gap-3'>
-                        <Label htmlFor='ooc-toggle-result' className='text-sm font-medium'>
-                          사담
-                        </Label>
-                        <Switch
-                          id='ooc-toggle-result'
-                          checked={showOOC}
-                          onCheckedChange={setShowOOC}
-                        />
-                        <span className='text-xs text-muted-foreground'>
-                          {showOOC ? 'ON' : 'OFF'}
-                        </span>
-                      </div>
-                      <Button
-                        onClick={downloadParsedData}
-                        className='flex items-center gap-2'
-                      >
-                        <Download className='h-4 w-4' />
-                        JSON 다운로드
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className='space-y-4'>
-                    {/* 디버깅 정보 */}
-                    <div className='p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-xs'>
-                      <div className='font-medium mb-2'>디버깅 정보:</div>
-                      <div className='space-y-1'>
-                        <div>캐릭터 수: {getCharactersFromData().length}</div>
-                        <div>
-                          로그 엔트리 수: {convertToLogEntries().length}
-                        </div>
-                        <div className='max-h-32 overflow-y-auto'>
-                          <strong>캐릭터 목록:</strong>
-                          {getCharactersFromData().map(char => {
-                            const mapping = senderMappings.find(
-                              m => m.sender === char.name
-                            );
-                            return (
-                              <div key={char.name} className='ml-2 text-xs'>
-                                <div>
-                                  <strong>{char.name}</strong>
-                                </div>
-                                <div>사용중: {char.thumbnail}</div>
-                                <div>원본: {mapping?.avatarUrl || '없음'}</div>
-                                <div>파일: {mapping?.imageFile || '없음'}</div>
-                                <br />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className='border rounded-lg p-4'>
-                      <ScriptLogViewer
-                        entries={convertToLogEntries()}
-                        characters={getCharactersFromData()}
-                        settings={defaultReadingSettings}
-                        entriesPerPage={50}
-                        showOOC={showOOC}
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className='text-center py-12 text-muted-foreground'>
-                  파싱된 데이터가 없습니다. 먼저 로그 데이터를 파싱해주세요.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
       </div>
     </>
