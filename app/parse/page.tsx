@@ -410,12 +410,12 @@ link.click();`;
       {} as { [key: string]: any }
     );
 
-    const enhancedData = parsedData
+    const logEntries = parsedData
       .filter(message => {
         const mapping = senderMappings.find(m => m.sender === message.sender);
         return !mapping?.markedForDeletion;
       })
-      .map(message => {
+      .map((message, index) => {
         let sender = message.sender || 'SYSTEM';
         const mapping = mappingDict[sender];
 
@@ -427,29 +427,34 @@ link.click();`;
           sender = 'SYSTEM';
         }
 
-        // 귓속말 처리
+        // LogEntry 형태로 변환
+        const logEntry = {
+          id: index + 1,
+          content: message.content,
+        } as any;
+
+        // 타입별 처리
         if (mapping?.type === 'whisper') {
-          return {
-            ...message,
-            sender: mapping.displayName || sender,
-            type: 'whisper',
-            whisperFrom: mapping.whisperFrom,
-            whisperTo: mapping.whisperTo,
-          };
+          logEntry.type = 'whisper';
+          logEntry.character = mapping.displayName || sender;
+          logEntry.target = mapping.whisperTo;
+        } else if (mapping?.type === 'system' || sender === 'SYSTEM') {
+          logEntry.type = 'system';
+        } else if (mapping?.type === 'ooc') {
+          logEntry.type = 'ooc';
+          logEntry.character = mapping.displayName || sender;
+        } else {
+          // character 타입
+          logEntry.type = 'character';
+          logEntry.character = mapping?.displayName || sender;
         }
 
-        return {
-          ...message,
-          sender: mapping?.displayName || sender,
-          type: mapping?.type || 'system',
-        };
+        return logEntry;
       });
 
-    setParsedData(enhancedData);
-    
     // JSON 데이터를 localStorage에 저장하고 편집 페이지로 이동
     const dataToSave = {
-      parsedData: enhancedData,
+      parsedData: logEntries, // LogEntry 형태로 저장
       senderMappings: filteredMappings
     };
     localStorage.setItem('trpg_editing_data', JSON.stringify(dataToSave));

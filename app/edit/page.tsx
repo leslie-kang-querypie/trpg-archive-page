@@ -45,6 +45,14 @@ export default function EditPage() {
         throw new Error('Invalid JSON format');
       }
 
+      // 이미 LogEntry 형태인지 확인
+      const firstItem = parsed[0];
+      if (firstItem && 'type' in firstItem && 'content' in firstItem && 'id' in firstItem) {
+        // 이미 LogEntry 형태면 그대로 반환
+        return parsed as LogEntry[];
+      }
+
+      // 기존 ParsedMessage 형태라면 변환
       return parsed.map((message: ParsedMessage, index: number) => {
         const logEntry = {
           id: index + 1,
