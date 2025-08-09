@@ -4,6 +4,7 @@ export interface LogEntry {
   character?: string;
   target?: string;
   content: string;
+  avatar?: string;
   diceResult?: {
     dice: string;
     result: number;
@@ -61,6 +62,7 @@ export interface SenderMapping {
   count: number;
   imageFile?: string;
   avatarUrl?: string;
+  customAvatarUrl?: string;
   expanded?: boolean;
   displayName?: string;
   whisperFrom?: string;

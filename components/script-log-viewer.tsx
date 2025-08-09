@@ -60,6 +60,20 @@ export function ScriptLogViewer({
     return characters.find(c => c.name === characterName);
   };
 
+  // 개별 로그의 아바타 URL을 우선적으로 사용하는 함수
+  const getAvatarUrl = (entry: LogEntry, characterInfo?: Character) => {
+    // 1. 로그에 직접 아바타가 있으면 사용
+    if (entry.avatar && !entry.avatar.includes('$0')) {
+      return entry.avatar;
+    }
+    // 2. 캐릭터 정보의 썸네일 사용
+    if (characterInfo?.thumbnail) {
+      return characterInfo.thumbnail;
+    }
+    // 3. 기본 플레이스홀더
+    return '/placeholder.svg?height=28&width=28&query=character';
+  };
+
   // 동적 스타일 생성
   const getTextStyle = () => ({
     fontSize: `${settings.fontSize}px`,
@@ -179,31 +193,24 @@ export function ScriptLogViewer({
     // 귓속말 - 아바타를 칸 안에 표시
     if (entry.type === 'whisper' && entry.character) {
       const characterInfo = getCharacterInfo(entry.character);
+      const avatarUrl = getAvatarUrl(entry, characterInfo);
 
       return (
         <div key={key} style={paragraphStyle}>
           <div className='bg-amber-50 rounded-lg px-3 py-2 italic'>
             <div className='flex items-start gap-3'>
-              {settings.showAvatars &&
-                (characterInfo ? (
-                  <Avatar className='w-6 h-6 flex-shrink-0'>
-                    <AvatarImage
-                      src={
-                        characterInfo.thumbnail ||
-                        '/placeholder.svg?height=24&width=24&query=character'
-                      }
-                      alt={entry.character}
-                      className='object-cover'
-                    />
-                    <AvatarFallback className='bg-transparent border-0 text-xs'>
-                      {entry.character.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div className='w-6 h-6 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center text-xs'>
+              {settings.showAvatars && (
+                <Avatar className='w-6 h-6 flex-shrink-0'>
+                  <AvatarImage
+                    src={avatarUrl}
+                    alt={entry.character}
+                    className='object-cover'
+                  />
+                  <AvatarFallback className='bg-transparent border-0 text-xs'>
                     {entry.character.charAt(0)}
-                  </div>
-                ))}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div className='flex-1 min-w-0' style={textStyle}>
                 <span className='font-bold'>{entry.character}</span>
                 {entry.target && (
@@ -450,38 +457,30 @@ export function ScriptLogViewer({
     // 일반 캐릭터 대화
     if (entry.type === 'character' && entry.character) {
       const characterInfo = getCharacterInfo(entry.character);
+      const avatarUrl = getAvatarUrl(entry, characterInfo);
 
       return (
         <div key={key} className='flex gap-3' style={paragraphStyle}>
           {/* 일반 캐릭터 - 설정에 따라 아바타 표시/숨김 */}
-          {settings.showAvatars &&
-            (characterInfo ? (
-              <Avatar className='w-7 h-7 flex-shrink-0'>
-                <AvatarImage
-                  src={
-                    characterInfo.thumbnail ||
-                    '/placeholder.svg?height=28&width=28&query=character'
-                  }
-                  alt={entry.character}
-                  className='object-cover'
-                  onError={e => {
-                    console.log(
-                      `Avatar failed to load for ${entry.character}:`,
-                      characterInfo.thumbnail
-                    );
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <AvatarFallback className='bg-gray-200 text-xs font-medium'>
-                  {entry.character?.charAt(0) || '?'}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              // NPC의 경우 기본 아바타 표시
-              <div className='w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700'>
+          {settings.showAvatars && (
+            <Avatar className='w-7 h-7 flex-shrink-0'>
+              <AvatarImage
+                src={avatarUrl}
+                alt={entry.character}
+                className='object-cover'
+                onError={e => {
+                  console.log(
+                    `Avatar failed to load for ${entry.character}:`,
+                    avatarUrl
+                  );
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <AvatarFallback className='bg-gray-200 text-xs font-medium'>
                 {entry.character?.charAt(0) || '?'}
-              </div>
-            ))}
+              </AvatarFallback>
+            </Avatar>
+          )}
 
           <div className='flex-1 min-w-0'>
             <div style={textStyle}>
@@ -572,38 +571,30 @@ export function ScriptLogViewer({
     const paragraphStyle = getParagraphSpacing();
     const firstEntry = characterEntries[0];
     const characterInfo = getCharacterInfo(firstEntry.character!);
+    const avatarUrl = getAvatarUrl(firstEntry, characterInfo);
 
     return (
       <div key={key} className='flex gap-3' style={paragraphStyle}>
         {/* 아바타 */}
-        {settings.showAvatars &&
-          (characterInfo ? (
-            <Avatar className='w-7 h-7 flex-shrink-0'>
-              <AvatarImage
-                src={
-                  characterInfo.thumbnail ||
-                  '/placeholder.svg?height=28&width=28&query=character'
-                }
-                alt={firstEntry.character}
-                className='object-cover'
-                onError={e => {
-                  console.log(
-                    `Avatar failed to load for ${firstEntry.character}:`,
-                    characterInfo.thumbnail
-                  );
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-              <AvatarFallback className='bg-gray-200 text-xs font-medium'>
-                {firstEntry.character?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            // NPC의 경우 기본 아바타 표시
-            <div className='w-7 h-7 flex-shrink-0 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700'>
+        {settings.showAvatars && (
+          <Avatar className='w-7 h-7 flex-shrink-0'>
+            <AvatarImage
+              src={avatarUrl}
+              alt={firstEntry.character}
+              className='object-cover'
+              onError={e => {
+                console.log(
+                  `Avatar failed to load for ${firstEntry.character}:`,
+                  avatarUrl
+                );
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <AvatarFallback className='bg-gray-200 text-xs font-medium'>
               {firstEntry.character?.charAt(0) || '?'}
-            </div>
-          ))}
+            </AvatarFallback>
+          </Avatar>
+        )}
 
         <div className='flex-1 min-w-0'>
           <div style={textStyle}>

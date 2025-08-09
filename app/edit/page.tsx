@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, RotateCcw, Upload, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
-import { ScriptLogViewer } from '@/components/script-log-viewer';
+import { ScriptLogEditorViewer, ScriptLogEditorViewerRef } from '@/components/script-log-editor-viewer';
 import { LogEntry, ParsedMessage, SenderMapping } from '@/types';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ export default function EditPage() {
   const [parsedEntries, setParsedEntries] = useState<LogEntry[]>([]);
   const [characters, setCharacters] = useState<any[]>([]);
   const [hasData, setHasData] = useState(false);
+  const viewerRef = useRef<ScriptLogEditorViewerRef>(null);
 
   useEffect(() => {
     const savedData = localStorage.getItem('trpg_editing_data');
@@ -97,9 +98,9 @@ export default function EditPage() {
     }));
   };
 
-  // JSON 변경시 실시간으로 파싱
-  useEffect(() => {
-    if (!jsonContent.trim()) {
+  // JSON 파싱 함수
+  const parseJsonContent = (content: string) => {
+    if (!content.trim()) {
       setIsJsonValid(false);
       setParsedEntries([]);
       setCharacters([]);
@@ -107,7 +108,7 @@ export default function EditPage() {
     }
 
     try {
-      const entries = parseJsonToLogEntries(jsonContent);
+      const entries = parseJsonToLogEntries(content);
       const chars = generateCharacters(entries);
       
       setParsedEntries(entries);
@@ -118,7 +119,19 @@ export default function EditPage() {
       setParsedEntries([]);
       setCharacters([]);
     }
-  }, [jsonContent]);
+  };
+
+  // JSON 변경시 onBlur로 파싱 (성능 최적화)
+  const handleJsonBlur = () => {
+    parseJsonContent(jsonContent);
+  };
+
+  // 초기 로드시에만 파싱
+  useEffect(() => {
+    if (jsonContent && hasData) {
+      parseJsonContent(jsonContent);
+    }
+  }, [hasData]);
 
   const handleReset = () => {
     setJsonContent(originalJsonContent);
@@ -308,6 +321,7 @@ export default function EditPage() {
                 <Textarea
                   value={jsonContent}
                   onChange={(e) => setJsonContent(e.target.value)}
+                  onBlur={handleJsonBlur}
                   className={`font-mono text-sm h-full resize-none border-0 rounded-none ${
                     !isJsonValid && jsonContent.trim() ? 'border-red-300 bg-red-50' : ''
                   }`}
@@ -342,31 +356,29 @@ export default function EditPage() {
               </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden p-4">
-              <div className="h-full overflow-y-auto">
-                {isJsonValid && parsedEntries.length > 0 ? (
-                  <ScriptLogViewer
-                    entries={parsedEntries}
-                    characters={characters}
-                    settings={defaultReadingSettings}
-                    entriesPerPage={100}
-                    showOOC={showOOC}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    {!isJsonValid ? (
-                      <div className="text-center">
-                        <h3 className="font-medium mb-2">유효하지 않은 JSON</h3>
-                        <p className="text-sm">JSON 형식을 확인해주세요.</p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <h3 className="font-medium mb-2">로그가 없습니다</h3>
-                        <p className="text-sm">JSON 데이터를 입력해주세요.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {isJsonValid && parsedEntries.length > 0 ? (
+                <ScriptLogEditorViewer
+                  ref={viewerRef}
+                  entries={parsedEntries}
+                  characters={characters}
+                  settings={defaultReadingSettings}
+                  showOOC={showOOC}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  {!isJsonValid ? (
+                    <div className="text-center">
+                      <h3 className="font-medium mb-2">유효하지 않은 JSON</h3>
+                      <p className="text-sm">JSON 형식을 확인해주세요.</p>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <h3 className="font-medium mb-2">로그가 없습니다</h3>
+                      <p className="text-sm">JSON 데이터를 입력해주세요.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
           </div>

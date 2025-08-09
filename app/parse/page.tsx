@@ -360,6 +360,14 @@ link.click();`;
     );
   };
 
+  const updateCustomAvatarUrl = (sender: string, customAvatarUrl: string) => {
+    setSenderMappings(prev =>
+      prev.map(mapping =>
+        mapping.sender === sender ? { ...mapping, customAvatarUrl } : mapping
+      )
+    );
+  };
+
   const updateDisplayName = (sender: string, displayName: string) => {
     setSenderMappings(prev =>
       prev.map(mapping =>
@@ -429,9 +437,15 @@ link.click();`;
 
         // LogEntry 형태로 변환
         const logEntry = {
-          id: index + 1,
+          id: (message as any).id || index + 1, // 원본 id 사용, 없으면 index 사용
           content: message.content,
         } as any;
+
+        // 아바타 정보 추가 - customAvatarUrl 우선, 없으면 원본 avatarUrl 사용
+        const avatarUrl = mapping?.customAvatarUrl || (message as any).avatarUrl || mapping?.avatarUrl;
+        if (avatarUrl && !avatarUrl.includes('$0')) {
+          logEntry.avatar = avatarUrl;
+        }
 
         // 타입별 처리
         if (mapping?.type === 'whisper') {
@@ -905,6 +919,29 @@ link.click();`;
                                         원본 URL 복사
                                       </Button>
                                     )}
+                                  </div>
+                                )}
+
+                                {/* 아바타 URL 입력 필드 */}
+                                {!mapping.markedForDeletion && (mapping.type === 'character' || mapping.type === 'ooc' || mapping.type === 'whisper') && (
+                                  <div className='flex flex-col gap-1'>
+                                    <Label className='text-xs text-muted-foreground'>
+                                      아바타 URL (선택사항)
+                                    </Label>
+                                    <Input
+                                      placeholder='https://example.com/avatar.png'
+                                      value={mapping.customAvatarUrl || ''}
+                                      onChange={e =>
+                                        updateCustomAvatarUrl(
+                                          mapping.sender,
+                                          e.target.value
+                                        )
+                                      }
+                                      className='w-48 text-sm'
+                                    />
+                                    <div className='text-xs text-muted-foreground'>
+                                      원본보다 우선 적용됩니다
+                                    </div>
                                   </div>
                                 )}
                               </>

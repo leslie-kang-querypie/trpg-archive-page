@@ -47,7 +47,7 @@ export function SubPostNavigation({
         <div className='p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2'>
           {subPosts.map((subPost, index) => (
             <Button
-              key={subPost.id}
+              key={`${subPost.id}-${index}`}
               variant={activeSubPostId === subPost.id ? 'secondary' : 'ghost'}
               className='h-auto p-3 text-left justify-start'
               onClick={() => onSubPostSelect(subPost.id)}
