@@ -1,12 +1,12 @@
-import { FileText, Lock, Shield, ShieldCheck } from 'lucide-react';
+import { FileText, Shield, ShieldCheck, Settings } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { OocPasswordDialog } from './ooc-password-dialog';
 import { ScriptLogViewer } from './script-log-viewer';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { LogEntry, Character, SubPost, ReadingSettings } from '@/types';
-import { Post } from '@/lib/types';
+import { Character, SubPost, ReadingSettings } from '@/types';
 
 interface SubPostContentProps {
   subPost: SubPost | null;
@@ -15,6 +15,8 @@ interface SubPostContentProps {
   oocUnlocked?: boolean;
   onOocPasswordSubmit?: (password: string) => void;
   oocError?: string;
+  onSettingsClick?: () => void;
+  hasOocPassword?: boolean;
 }
 
 export const SubPostContent = ({
@@ -24,6 +26,8 @@ export const SubPostContent = ({
   oocUnlocked = false,
   onOocPasswordSubmit,
   oocError = '',
+  onSettingsClick,
+  hasOocPassword = false,
 }: SubPostContentProps) => {
   const [showOOC, setShowOOC] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -82,29 +86,47 @@ export const SubPostContent = ({
           <div className='flex items-center justify-between'>
             <h2 className='text-xl font-semibold'>{subPost.title}</h2>
 
-            {/* 사담 토글 */}
+            {/* 사담 토글 및 설정 */}
             <div className='flex items-center gap-3'>
-              {/* 인증 상태 표시 */}
-              {oocUnlocked ? (
-                <div className='flex items-center gap-1 text-xs text-green-600'>
-                  <ShieldCheck className='w-3 h-3' />
-                  <span>인증됨</span>
-                </div>
-              ) : (
-                <div className='flex items-center gap-1 text-xs text-muted-foreground'>
-                  <Shield className='w-3 h-3' />
-                  <span>미인증</span>
-                </div>
+              {/* 사담 토글 (비밀번호가 설정된 경우만 표시) */}
+              {hasOocPassword && (
+                <>
+                  {/* 인증 상태 표시 */}
+                  {oocUnlocked ? (
+                    <div className='flex items-center gap-1 text-xs text-green-600'>
+                      <ShieldCheck className='w-3 h-3' />
+                      <span>인증됨</span>
+                    </div>
+                  ) : (
+                    <div className='flex items-center gap-1 text-xs text-muted-foreground'>
+                      <Shield className='w-3 h-3' />
+                      <span>미인증</span>
+                    </div>
+                  )}
+
+                  <Label htmlFor='ooc-toggle' className='text-sm font-medium'>
+                    사담
+                  </Label>
+                  <Switch
+                    id='ooc-toggle'
+                    checked={showOOC}
+                    onCheckedChange={handleOocToggle}
+                  />
+                </>
               )}
 
-              <Label htmlFor='ooc-toggle' className='text-sm font-medium'>
-                사담
-              </Label>
-              <Switch
-                id='ooc-toggle'
-                checked={showOOC}
-                onCheckedChange={handleOocToggle}
-              />
+              {/* 읽기 설정 버튼 */}
+              {onSettingsClick && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={onSettingsClick}
+                  className='h-8 w-8 p-0'
+                >
+                  <Settings className='w-4 h-4' />
+                  <span className='sr-only'>읽기 설정</span>
+                </Button>
+              )}
             </div>
           </div>
           {subPost.description && (

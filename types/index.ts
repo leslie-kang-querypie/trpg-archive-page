@@ -47,6 +47,7 @@ export interface ReadingSettings {
   lineSpacing: number;
   paragraphSpacing: number;
   centerSystemMessages: boolean;
+  itemsPerPage: number;
 }
 
 export interface SubPost {

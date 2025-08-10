@@ -236,6 +236,7 @@ export default function EditPage() {
     lineSpacing: 1.5,
     paragraphSpacing: 2,
     centerSystemMessages: false,
+    itemsPerPage: 200,
   };
 
   const handleAddEntry = (newEntry: LogEntry) => {

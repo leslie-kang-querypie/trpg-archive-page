@@ -1,4 +1,4 @@
-import { FileText, ChevronRight, Settings } from 'lucide-react';
+import { FileText, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,33 +14,20 @@ interface SubPostNavigationProps {
   subPosts: SubPost[];
   activeSubPostId: string | null;
   onSubPostSelect: (id: string) => void;
-  onSettingsClick: () => void;
 }
 
 export function SubPostNavigation({
   subPosts,
   activeSubPostId,
   onSubPostSelect,
-  onSettingsClick,
 }: SubPostNavigationProps) {
   return (
     <div className='border bg-card rounded-lg'>
       <div className='p-4 border-b'>
-        <div className='flex items-center justify-between'>
-          <h3 className='font-semibold flex items-center gap-2'>
-            <FileText className='w-4 h-4' />
-            세션 목록
-          </h3>
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={onSettingsClick}
-            className='h-8 w-8 p-0'
-          >
-            <Settings className='w-4 h-4' />
-            <span className='sr-only'>읽기 설정</span>
-          </Button>
-        </div>
+        <h3 className='font-semibold flex items-center gap-2'>
+          <FileText className='w-4 h-4' />
+          세션 목록
+        </h3>
       </div>
 
       <ScrollArea className='max-h-80'>

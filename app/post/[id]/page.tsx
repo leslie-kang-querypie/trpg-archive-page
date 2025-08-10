@@ -51,6 +51,7 @@ export default function PostPage() {
     lineSpacing: 1.5,
     paragraphSpacing: 2,
     centerSystemMessages: false,
+    itemsPerPage: 200,
   });
   const [activeSubPostId, setActiveSubPostId] = useState<string | null>(null);
   const [post, setPost] = useState<Post | null>(null);
@@ -278,7 +279,6 @@ export default function PostPage() {
               subPosts={post.subPosts || []}
               activeSubPostId={activeSubPostId}
               onSubPostSelect={setActiveSubPostId}
-              onSettingsClick={() => setSettingsOpen(true)}
             />
 
             <SubPostContent
@@ -288,6 +288,8 @@ export default function PostPage() {
               oocUnlocked={oocUnlocked}
               onOocPasswordSubmit={handleOocPasswordSubmit}
               oocError={oocError}
+              onSettingsClick={() => setSettingsOpen(true)}
+              hasOocPassword={!!post.oocPassword}
             />
           </div>
         )}

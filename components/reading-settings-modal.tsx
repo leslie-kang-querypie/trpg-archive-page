@@ -1,4 +1,4 @@
-import { User, Type, Space, AlignCenter } from 'lucide-react';
+import { User, Type, Space, AlignCenter, List } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +9,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { ReadingSettings } from '@/types';
@@ -76,77 +83,6 @@ export function ReadingSettingsModal({
             />
           </div>
 
-          {/* 폰트 크기 */}
-          <div className='space-y-3'>
-            <div className='flex items-center gap-2'>
-              <Type className='w-4 h-4 text-muted-foreground' />
-              <Label className='text-sm font-medium'>
-                폰트 크기: {getFontSizeLabel(settings.fontSize)}
-              </Label>
-            </div>
-            <Slider
-              value={[settings.fontSize]}
-              onValueChange={([value]) => updateSetting('fontSize', value)}
-              min={11}
-              max={18}
-              step={1}
-              className='w-full'
-            />
-            <div className='flex justify-between text-xs text-muted-foreground'>
-              <span>작게</span>
-              <span>보통</span>
-              <span>크게</span>
-            </div>
-          </div>
-
-          {/* 줄 간격 */}
-          <div className='space-y-3'>
-            <div className='flex items-center gap-2'>
-              <Space className='w-4 h-4 text-muted-foreground' />
-              <Label className='text-sm font-medium'>
-                줄 간격: {getSpacingLabel(settings.lineSpacing)}
-              </Label>
-            </div>
-            <Slider
-              value={[settings.lineSpacing]}
-              onValueChange={([value]) => updateSetting('lineSpacing', value)}
-              min={1}
-              max={4}
-              step={0.2}
-              className='w-full'
-            />
-            <div className='flex justify-between text-xs text-muted-foreground'>
-              <span>좁게</span>
-              <span>보통</span>
-              <span>넓게</span>
-            </div>
-          </div>
-
-          {/* 문단 간격 */}
-          <div className='space-y-3'>
-            <div className='flex items-center gap-2'>
-              <Space className='w-4 h-4 text-muted-foreground rotate-90' />
-              <Label className='text-sm font-medium'>
-                문단 간격: {getSpacingLabel(settings.paragraphSpacing)}
-              </Label>
-            </div>
-            <Slider
-              value={[settings.paragraphSpacing]}
-              onValueChange={([value]) =>
-                updateSetting('paragraphSpacing', value)
-              }
-              min={0.5}
-              max={4}
-              step={0.5}
-              className='w-full'
-            />
-            <div className='flex justify-between text-xs text-muted-foreground'>
-              <span>좁게</span>
-              <span>보통</span>
-              <span>넓게</span>
-            </div>
-          </div>
-
           {/* 시스템 메시지 중앙정렬 */}
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
@@ -160,6 +96,102 @@ export function ReadingSettingsModal({
               checked={settings.centerSystemMessages}
               onCheckedChange={checked => updateSetting('centerSystemMessages', checked)}
             />
+          </div>
+
+          {/* 페이지당 아이템 수 */}
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2'>
+              <List className='w-4 h-4 text-muted-foreground' />
+              <Label className='text-sm font-medium'>
+                페이지당 아이템 수
+              </Label>
+            </div>
+            <Select
+              value={settings.itemsPerPage.toString()}
+              onValueChange={(value) => updateSetting('itemsPerPage', parseInt(value))}
+            >
+              <SelectTrigger className='w-full'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='50'>50개</SelectItem>
+                <SelectItem value='100'>100개</SelectItem>
+                <SelectItem value='200'>200개</SelectItem>
+                <SelectItem value='500'>500개</SelectItem>
+                <SelectItem value='1000'>1000개</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* 폰트 크기 */}
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <Type className='w-4 h-4 text-muted-foreground' />
+            <Label className='text-sm font-medium'>
+              폰트 크기: {getFontSizeLabel(settings.fontSize)}
+            </Label>
+          </div>
+          <Slider
+            value={[settings.fontSize]}
+            onValueChange={([value]) => updateSetting('fontSize', value)}
+            min={11}
+            max={18}
+            step={1}
+            className='w-full'
+          />
+          <div className='flex justify-between text-xs text-muted-foreground'>
+            <span>작게</span>
+            <span>보통</span>
+            <span>크게</span>
+          </div>
+        </div>
+
+        {/* 줄 간격 */}
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <Space className='w-4 h-4 text-muted-foreground' />
+            <Label className='text-sm font-medium'>
+              줄 간격: {getSpacingLabel(settings.lineSpacing)}
+            </Label>
+          </div>
+          <Slider
+            value={[settings.lineSpacing]}
+            onValueChange={([value]) => updateSetting('lineSpacing', value)}
+            min={1}
+            max={4}
+            step={0.2}
+            className='w-full'
+          />
+          <div className='flex justify-between text-xs text-muted-foreground'>
+            <span>좁게</span>
+            <span>보통</span>
+            <span>넓게</span>
+          </div>
+        </div>
+
+        {/* 문단 간격 */}
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <Space className='w-4 h-4 text-muted-foreground rotate-90' />
+            <Label className='text-sm font-medium'>
+              문단 간격: {getSpacingLabel(settings.paragraphSpacing)}
+            </Label>
+          </div>
+          <Slider
+            value={[settings.paragraphSpacing]}
+            onValueChange={([value]) =>
+              updateSetting('paragraphSpacing', value)
+            }
+            min={0.5}
+            max={4}
+            step={0.5}
+            className='w-full'
+          />
+          <div className='flex justify-between text-xs text-muted-foreground'>
+            <span>좁게</span>
+            <span>보통</span>
+            <span>넓게</span>
           </div>
         </div>
 
@@ -176,6 +208,7 @@ export function ReadingSettingsModal({
                 lineSpacing: 1.5,
                 paragraphSpacing: 2,
                 centerSystemMessages: false,
+                itemsPerPage: 200,
               });
             }}
             variant='secondary'
