@@ -80,7 +80,7 @@ export type MessageType = 'character' | 'system' | 'ooc' | 'whisper' | 'delete';
 export const MESSAGE_TYPES: { value: MessageType; label: string }[] = [
   { value: 'character', label: '캐릭터' },
   { value: 'system', label: '시스템' },
-  { value: 'ooc', label: 'OOC' },
+  { value: 'ooc', label: '사담' },
   { value: 'whisper', label: '귓속말' },
   { value: 'delete', label: '삭제' },
 ];
@@ -102,36 +102,8 @@ export interface SubPostMetadata {
   description: string;
 }
 
-
-// 로그 뷰어 Props 타입들
 export interface BaseLogViewerProps {
   entries: LogEntry[];
   characters: Character[];
   settings: ReadingSettings;
-}
-
-export interface RangeSelectionViewerProps extends BaseLogViewerProps {
-  startIndex: number;
-  endIndex: number;
-  onRangeChange: (start: number, end: number) => void;
-}
-
-export interface EditableLogViewerProps extends BaseLogViewerProps {
-  showOOC: boolean;
-  onEntryEdit: (index: number, newEntry: LogEntry) => void;
-  onEntryDelete: (index: number) => void;
-  onInsertRequest: (index: number) => void;
-}
-
-export interface LogEntryRendererProps {
-  entry: LogEntry;
-  index: number;
-  settings: ReadingSettings;
-  isEditing?: boolean;
-  editingContent?: string;
-  onEdit?: (index: number, content: string) => void;
-  onSave?: (index: number) => void;
-  onCancel?: () => void;
-  onDelete?: (index: number) => void;
-  onEditingContentChange?: (content: string) => void;
 }

@@ -128,12 +128,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Header
-        title='TRPG 로그 아카이브'
-        showParseButton
-        showEditButton
-        showWriteButton
-      />
+      <Header title='TRPG 로그 아카이브' />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         {/* Controls */}

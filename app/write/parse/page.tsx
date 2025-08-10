@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Header } from '@/components/header';
 import { ParsedMessage, SenderMapping } from '@/types';
 import { Stepper } from '@/components/ui/steps';
 import { ScriptStep } from '@/components/parse/script-step';
@@ -478,7 +477,7 @@ link.click();`;
       senderMappings: filteredMappings,
     };
     localStorage.setItem('trpg_editing_data', JSON.stringify(dataToSave));
-    window.location.href = '/edit';
+    window.location.href = '/write/edit';
   };
 
   const saveMappingPreset = () => {
@@ -565,10 +564,7 @@ link.click();`;
   };
 
   return (
-    <>
-      <Header title='TRPG 채팅 로그 파서' showBackButton />
-
-      <div className='container mx-auto px-4 py-6 max-w-6xl'>
+    <div className='container mx-auto px-4 py-6 max-w-6xl'>
         <div className='space-y-8'>
           <div className='flex justify-center'>
             <Stepper
@@ -622,6 +618,5 @@ link.click();`;
           )}
         </div>
       </div>
-    </>
   );
 }

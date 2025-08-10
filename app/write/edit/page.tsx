@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Header } from '@/components/header';
 import { 
   LogEntry, 
   Character, 
@@ -255,10 +254,7 @@ export default function EditPage() {
   };
 
   return (
-    <>
-      <Header title='TRPG 로그 편집기' showBackButton />
-
-      <div className='container mx-auto px-4 py-6 max-w-6xl'>
+    <div className='container mx-auto px-4 py-6 max-w-6xl'>
         {/* 단계 표시 UI */}
         <div className='flex justify-center'>
           <Stepper
@@ -579,6 +575,5 @@ export default function EditPage() {
           </div>
         )}
       </div>
-    </>
   );
 }

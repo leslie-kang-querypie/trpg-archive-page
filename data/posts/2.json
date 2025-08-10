@@ -2,11 +2,9 @@
   "id": 2,
   "title": "D&D 5e - 드래곤의 둥지",
   "summary": "고전적인 던전 앤 드래곤 세계에서 펼쳐지는 모험가들의 이야기. 드래곤의 보물을 찾아 떠나는 여행",
-  "thumbnail": "/fantasy-dungeon-goblins.png",
+  "thumbnail": "/placeholder.svg",
   "tags": ["D&D", "판타지", "드래곤"],
   "date": "2024-01-20",
-  "views": 180,
-  "password": "1234",
   "isPrivate": false,
   "sessionInfo": {
     "rule": "D&D 5th Edition",
@@ -20,28 +18,28 @@
         "player": "김철수",
         "class": "전사",
         "description": "용맹한 인간 전사. 강력한 검술과 굳건한 의지력을 가지고 있다.",
-        "thumbnail": "/character-dwarf-fighter.png"
+        "thumbnail": "/placeholder.svg"
       },
       {
         "name": "엘레나",
         "player": "이영희",
         "class": "마법사",
         "description": "지혜로운 엘프 마법사. 고대 마법에 대한 깊은 지식을 보유하고 있다.",
-        "thumbnail": "/character-elf-rogue.png"
+        "thumbnail": "/placeholder.svg"
       },
       {
         "name": "토린",
         "player": "박민수",
         "class": "성직자",
         "description": "신실한 드워프 성직자. 동료들을 치유하고 보호하는 역할을 담당한다.",
-        "thumbnail": "/character-dwarf-fighter.png"
+        "thumbnail": "/placeholder.svg"
       },
       {
         "name": "실바나",
         "player": "정수진",
         "class": "도적",
         "description": "민첩한 하플링 도적. 함정을 해제하고 정찰을 담당한다.",
-        "thumbnail": "/character-human-bard.png"
+        "thumbnail": "/placeholder.svg"
       }
     ],
     "highlight": "깊은 산맥 너머에 숨겨진 고대 용의 둥지. 수백 년간 아무도 발을 들이지 않은 이곳에서 네 명의 모험가가 운명적인 만남을 가졌다. 전설 속 보물과 함께 기다리고 있는 것은 무엇일까?"
