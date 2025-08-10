@@ -84,3 +84,54 @@ export const MESSAGE_TYPES: { value: MessageType; label: string }[] = [
   { value: 'whisper', label: '귓속말' },
   { value: 'delete', label: '삭제' },
 ];
+
+// 편집기 관련 타입들
+export interface EditingState {
+  editingIndex: number;
+  editingContent: string;
+}
+
+export interface RangeSelection {
+  startIndex: number;
+  endIndex: number;
+}
+
+export interface SubPostMetadata {
+  id: string;
+  title: string;
+  description: string;
+}
+
+
+// 로그 뷰어 Props 타입들
+export interface BaseLogViewerProps {
+  entries: LogEntry[];
+  characters: Character[];
+  settings: ReadingSettings;
+}
+
+export interface RangeSelectionViewerProps extends BaseLogViewerProps {
+  startIndex: number;
+  endIndex: number;
+  onRangeChange: (start: number, end: number) => void;
+}
+
+export interface EditableLogViewerProps extends BaseLogViewerProps {
+  showOOC: boolean;
+  onEntryEdit: (index: number, newEntry: LogEntry) => void;
+  onEntryDelete: (index: number) => void;
+  onInsertRequest: (index: number) => void;
+}
+
+export interface LogEntryRendererProps {
+  entry: LogEntry;
+  index: number;
+  settings: ReadingSettings;
+  isEditing?: boolean;
+  editingContent?: string;
+  onEdit?: (index: number, content: string) => void;
+  onSave?: (index: number) => void;
+  onCancel?: () => void;
+  onDelete?: (index: number) => void;
+  onEditingContentChange?: (content: string) => void;
+}

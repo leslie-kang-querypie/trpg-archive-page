@@ -1,36 +1,12 @@
 'use client';
 
-import {
-  Upload,
-  Code,
-  Settings,
-  MessageSquare,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
 import { useState } from 'react';
-
 import { Header } from '@/components/header';
-import { ParsedMessage, SenderMapping, MESSAGE_TYPES } from '@/types';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ParsedMessage, SenderMapping } from '@/types';
 import { Stepper } from '@/components/ui/steps';
-import { Textarea } from '@/components/ui/textarea';
+import { ScriptStep } from '@/components/parse/script-step';
+import { ParseStep } from '@/components/parse/parse-step';
+import { MappingStep } from '@/components/parse/mapping-step';
 
 export default function ParsePage() {
   const [rawData, setRawData] = useState('');
@@ -613,393 +589,36 @@ link.click();`;
           </div>
 
           {currentStep === 0 && (
-            <Card>
-              <CardHeader>
-                <div className='flex gap-2 justify-between'>
-                  <div className='flex flex-col gap-2'>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Code className='h-5 w-5' />
-                      브라우저 콘솔 스크립트
-                    </CardTitle>
-                    <CardDescription>
-                      Roll20 웹페이지에서 개발자 도구 콘솔에 붙여넣어 실행하는
-                      스크립트입니다.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={() => setCurrentStep(1)}
-                    className='flex items-center gap-2'
-                  >
-                    다음 단계
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>
-                  <h4 className='font-medium mb-2'>사용 방법:</h4>
-                  <ol className='list-decimal list-inside space-y-1 text-sm text-muted-foreground'>
-                    <li>
-                      Roll20 세션 페이지에서 F12를 눌러 개발자 도구를 엽니다
-                    </li>
-                    <li>Console 탭으로 이동합니다</li>
-                    <li>위 스크립트를 복사해서 붙여넣고 Enter를 누릅니다</li>
-                    <li>자동으로 JSON 파일이 다운로드됩니다</li>
-                    <li>다운로드된 파일을 다음 단계에서 업로드하세요</li>
-                  </ol>
-                  <div className='mt-3 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800'>
-                    <p className='text-xs text-amber-700 dark:text-amber-300'>
-                      <strong>개선사항:</strong> DOM 구조를 정확히 분석하여
-                      메시지를 추출하고, 아바타 이미지를 자동으로 수집하며,
-                      귓속말과 일반 메시지를 구분합니다.
-                    </p>
-                  </div>
-                  <div className='mt-2 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800'>
-                    <p className='text-xs text-green-700 dark:text-green-300'>
-                      <strong>디버깅:</strong> 콘솔에서 발신자 목록과 메시지
-                      수를 확인할 수 있습니다.
-                    </p>
-                  </div>
-                </div>
-                <div className='relative'>
-                  <pre className='bg-muted p-6 rounded-lg text-sm overflow-x-auto font-mono'>
-                    <code>{originalScript}</code>
-                  </pre>
-                  <Button
-                    onClick={copyScriptToClipboard}
-                    className='absolute top-4 right-4'
-                    size='sm'
-                  >
-                    복사
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ScriptStep
+              script={originalScript}
+              onNext={() => setCurrentStep(1)}
+              onCopyScript={copyScriptToClipboard}
+            />
           )}
 
           {currentStep === 1 && (
-            <Card>
-              <CardHeader>
-                <div className='flex gap-2 justify-between'>
-                  <div className='flex flex-col gap-2'>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Upload className='h-5 w-5' />
-                      로그 데이터 업로드 및 파싱
-                    </CardTitle>
-                    <CardDescription>
-                      브라우저에서 추출한 JSON 데이터를 여기에 붙여넣거나 파일로
-                      업로드하세요.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={parseLogData}
-                    disabled={isProcessing || !rawData.trim()}
-                    className='flex items-center gap-2'
-                  >
-                    {isProcessing ? '처리 중...' : '파싱 실행 및 다음 단계'}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex gap-6 items-end justify-between flex-wrap'>
-                  <Button
-                    onClick={() =>
-                      document.getElementById('file-upload')?.click()
-                    }
-                    variant='outline'
-                    className='flex items-center gap-2'
-                  >
-                    <Upload className='h-4 w-4' />
-                    파일 업로드
-                  </Button>
-
-                  {rawData && (
-                    <div className='text-sm text-muted-foreground'>
-                      입력된 데이터: {rawData.length.toLocaleString()} 문자
-                    </div>
-                  )}
-                  <input
-                    id='file-upload'
-                    type='file'
-                    accept='.json,.txt'
-                    onChange={handleFileUpload}
-                    className='hidden'
-                  />
-                </div>
-
-                <Textarea
-                  placeholder='JSON 형태의 로그 데이터를 여기에 붙여넣으세요...'
-                  value={rawData}
-                  onChange={e => setRawData(e.target.value)}
-                  className='min-h-[300px] font-mono text-sm'
-                />
-              </CardContent>
-            </Card>
+            <ParseStep
+              rawData={rawData}
+              isProcessing={isProcessing}
+              onDataChange={setRawData}
+              onFileUpload={handleFileUpload}
+              onParse={parseLogData}
+            />
           )}
 
           {currentStep === 2 && (
-            <Card>
-              <CardHeader>
-                <div className='flex gap-2 justify-between'>
-                  <div className='flex flex-col gap-2'>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Settings className='h-5 w-5' />
-                      발신자 타입 매핑
-                    </CardTitle>
-                    <CardDescription>
-                      각 발신자의 메시지 타입을 설정하세요. 메시지 개수순으로
-                      정렬되어 있습니다.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={applyMappings}
-                    className='flex items-center gap-2'
-                  >
-                    <MessageSquare className='h-4 w-4' />
-                    로그 편집 페이지로 이동
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                {senderMappings.length > 0 && (
-                  <>
-                    <div className='flex justify-between items-center'>
-                      <div className='text-sm text-muted-foreground'>
-                        총 {senderMappings.length}명의 발신자
-                      </div>
-                      <div className='flex gap-2'>
-                        <Button
-                          onClick={loadMappingPreset}
-                          variant='outline'
-                          size='sm'
-                        >
-                          매핑 프리셋 불러오기
-                        </Button>
-                        <Button
-                          onClick={saveMappingPreset}
-                          variant='outline'
-                          size='sm'
-                        >
-                          매핑 프리셋 저장하기
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className='grid gap-3'>
-                      {senderMappings.map(mapping => (
-                        <div
-                          key={mapping.sender}
-                          className={`border rounded-lg ${mapping.markedForDeletion ? 'opacity-50 bg-red-50 border-red-200' : ''}`}
-                        >
-                          <div className='flex items-start gap-3 p-3'>
-                            <div className='flex items-center gap-3 flex-1'>
-                              {/* 아바타 미리보기 */}
-                              {mapping.avatarUrl &&
-                              (mapping.type === 'character' ||
-                                mapping.type === 'whisper') ? (
-                                <img
-                                  src={mapping.avatarUrl}
-                                  alt={mapping.sender}
-                                  className='w-10 h-10 rounded-full object-cover border'
-                                  onError={e => {
-                                    (
-                                      e.target as HTMLImageElement
-                                    ).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium'>
-                                  {mapping.sender.charAt(0)}
-                                </div>
-                              )}
-
-                              <div className='flex-1'>
-                                <div className='font-medium flex items-center gap-2 mb-1'>
-                                  {mapping.sender}
-                                  <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-6 w-6 p-0'
-                                    onClick={() =>
-                                      toggleSenderExpanded(mapping.sender)
-                                    }
-                                  >
-                                    {mapping.expanded ? (
-                                      <ChevronDown className='h-3 w-3' />
-                                    ) : (
-                                      <ChevronRight className='h-3 w-3' />
-                                    )}
-                                  </Button>
-                                </div>
-                                <div className='text-sm text-muted-foreground'>
-                                  {mapping.count}개의 메시지
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className='flex flex-col gap-2'>
-                              <Select
-                                value={
-                                  mapping.markedForDeletion
-                                    ? 'delete'
-                                    : mapping.type
-                                }
-                                onValueChange={value =>
-                                  updateSenderType(mapping.sender, value)
-                                }
-                              >
-                                <SelectTrigger className='w-48'>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {MESSAGE_TYPES.map(type => (
-                                    <SelectItem
-                                      key={type.value}
-                                      value={type.value}
-                                      className={
-                                        type.value === 'delete'
-                                          ? 'text-red-600'
-                                          : ''
-                                      }
-                                    >
-                                      <div className='flex items-center gap-2'>
-                                        {type.label}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-
-                              {!mapping.markedForDeletion && (
-                                <>
-                                  {mapping.type !== 'system' && (
-                                    <div className='flex flex-col gap-1'>
-                                      <Label className='text-xs text-muted-foreground'>
-                                        표시 이름
-                                      </Label>
-                                      <Input
-                                        placeholder={mapping.sender}
-                                        value={mapping.displayName || ''}
-                                        onChange={e =>
-                                          updateDisplayName(
-                                            mapping.sender,
-                                            e.target.value
-                                          )
-                                        }
-                                        className='w-48 text-sm'
-                                      />
-                                    </div>
-                                  )}
-
-                                  {mapping.type === 'whisper' && (
-                                    <>
-                                      <div className='flex flex-col gap-1'>
-                                        <Label className='text-xs text-muted-foreground'>
-                                          발신자
-                                        </Label>
-                                        <Input
-                                          placeholder='누가 보냈나요?'
-                                          value={mapping.whisperFrom || ''}
-                                          onChange={e =>
-                                            updateWhisperInfo(
-                                              mapping.sender,
-                                              e.target.value,
-                                              mapping.whisperTo || ''
-                                            )
-                                          }
-                                          className='w-48 text-sm'
-                                        />
-                                      </div>
-                                      <div className='flex flex-col gap-1'>
-                                        <Label className='text-xs text-muted-foreground'>
-                                          수신자
-                                        </Label>
-                                        <Input
-                                          placeholder='누구에게 보냈나요?'
-                                          value={mapping.whisperTo || ''}
-                                          onChange={e =>
-                                            updateWhisperInfo(
-                                              mapping.sender,
-                                              mapping.whisperFrom || '',
-                                              e.target.value
-                                            )
-                                          }
-                                          className='w-48 text-sm'
-                                        />
-                                      </div>
-                                    </>
-                                  )}
-
-                                  {/* 아바타 URL 입력 필드 */}
-                                  {!mapping.markedForDeletion &&
-                                    (mapping.type === 'character' ||
-                                      mapping.type === 'whisper') && (
-                                      <div className='flex flex-col gap-1'>
-                                        <Label className='text-xs text-muted-foreground'>
-                                          아바타 URL
-                                        </Label>
-                                        <Input
-                                          placeholder='아바타 이미지 URL을 입력하세요'
-                                          value={mapping.avatarUrl || ''}
-                                          onChange={e =>
-                                            updateSenderAvatarUrl(
-                                              mapping.sender,
-                                              e.target.value
-                                            )
-                                          }
-                                          className='w-48 text-sm'
-                                        />
-                                      </div>
-                                    )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* 메시지 미리보기 */}
-                          {mapping.expanded && (
-                            <div className='border-t bg-gray-50 dark:bg-gray-900/20 p-3'>
-                              <div className='text-sm font-medium mb-2'>
-                                메시지 미리보기:
-                              </div>
-                              <div className='space-y-2 max-h-48 overflow-y-auto'>
-                                {getSenderMessages(mapping.sender, 5).map(
-                                  (msg, msgIndex) => (
-                                    <div
-                                      key={msgIndex}
-                                      className='p-2 bg-white dark:bg-gray-800 rounded text-xs'
-                                    >
-                                      <div className='text-muted-foreground mb-1'>
-                                        {(msg as any).time || '시간 없음'}
-                                      </div>
-                                      <div className='truncate'>
-                                        {(msg.content || '내용 없음').substring(
-                                          0,
-                                          100
-                                        )}
-                                        {(msg.content?.length || 0) > 100
-                                          ? '...'
-                                          : ''}
-                                      </div>
-                                    </div>
-                                  )
-                                )}
-                                {getSenderMessages(mapping.sender).length ===
-                                  0 && (
-                                  <div className='text-muted-foreground text-xs'>
-                                    메시지를 찾을 수 없습니다.
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <MappingStep
+              mappings={senderMappings}
+              messages={parsedData}
+              onUpdateSenderType={updateSenderType}
+              onUpdateDisplayName={updateDisplayName}
+              onUpdateSenderAvatarUrl={updateSenderAvatarUrl}
+              onUpdateWhisperInfo={updateWhisperInfo}
+              onToggleSenderExpanded={toggleSenderExpanded}
+              onSaveMappingPreset={saveMappingPreset}
+              onLoadMappingPreset={loadMappingPreset}
+              onApplyMappings={applyMappings}
+            />
           )}
         </div>
       </div>

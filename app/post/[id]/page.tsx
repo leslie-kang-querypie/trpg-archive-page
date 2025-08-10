@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
 
 import { Header } from '@/components/header';
+import { LoadingPage } from '@/components/ui/spinner';
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help';
 import { ReadingSettingsModal } from '@/components/reading-settings-modal';
 
@@ -162,7 +163,7 @@ export default function PostPage() {
   useKeyboardShortcuts(shortcuts);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingPage />;
   }
 
   if (!post) {
