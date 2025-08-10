@@ -1,22 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Plus, X, FileText, User, Shield, Eye, EyeOff } from 'lucide-react';
+import { Download, Plus, X, FileText, User, Shield, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Character, SubPost } from '@/types';
 import { SessionInfo, Post } from '@/lib/types';
+import { hashPassword } from '@/lib/password-utils';
 
 export default function SessionPage() {
-  const router = useRouter();
-  
   // Post 기본 정보 상태
   const [postData, setPostData] = useState({
     title: '',
@@ -202,16 +199,17 @@ export default function SessionPage() {
       return;
     }
 
+    const postId = Date.now();
     const completePost: Post = {
-      id: Date.now(), // 임시 ID
+      id: postId,
       title: postData.title,
       summary: postData.summary,
       thumbnail: postData.thumbnail,
       tags: postData.tags,
       date: new Date().toISOString().split('T')[0],
-      password: postData.password,
+      password: hashPassword(postData.password, postId),
       isPrivate: postData.isPrivate,
-      oocPassword: postData.oocPassword,
+      oocPassword: hashPassword(postData.oocPassword || postData.password, postId),
       sessionInfo,
       subPosts
     };

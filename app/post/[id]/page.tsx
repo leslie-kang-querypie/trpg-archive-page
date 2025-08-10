@@ -29,8 +29,9 @@ import {
   createCommonShortcuts,
 } from '@/hooks/use-keyboard-shortcuts';
 import { getPost } from '@/lib/data';
+import { verifyPassword } from '@/lib/password-utils';
 import { Post } from '@/lib/types';
-import { ReadingSettings, SubPost } from '@/types';
+import { ReadingSettings } from '@/types';
 
 export default function PostPage() {
   const params = useParams();
@@ -74,7 +75,7 @@ export default function PostPage() {
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (post && passwordInput === post.password) {
+    if (post && verifyPassword(passwordInput, post.password, post.id)) {
       setIsUnlocked(true);
       setError('');
       if (post.subPosts.length > 0) {
@@ -89,9 +90,7 @@ export default function PostPage() {
   const handleOocPasswordSubmit = (password: string) => {
     if (!post) return;
 
-    const oocPassword = post.oocPassword || post.password; // oocPassword가 없으면 기본 password 사용
-
-    if (password === oocPassword) {
+    if (verifyPassword(password, post.oocPassword || post.password, post.id)) {
       setOocUnlocked(true);
       setOocError('');
       setOocPasswordInput(''); // 비밀번호 입력 필드 초기화
