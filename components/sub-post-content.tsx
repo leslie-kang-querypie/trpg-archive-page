@@ -25,11 +25,11 @@ export const SubPostContent = ({
   post,
   oocUnlocked = false,
   onOocPasswordSubmit,
-  oocError = ''
+  oocError = '',
 }: SubPostContentProps) => {
   const [showOOC, setShowOOC] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  
+
   // oocUnlocked 상태가 변경되면 사담을 자동으로 켜고 다이얼로그 닫기
   React.useEffect(() => {
     if (oocUnlocked) {
@@ -37,7 +37,7 @@ export const SubPostContent = ({
       setShowPasswordDialog(false);
     }
   }, [oocUnlocked]);
-  
+
   // 사담 토글 핸들러
   const handleOocToggle = (checked: boolean) => {
     if (!checked) {
@@ -83,22 +83,22 @@ export const SubPostContent = ({
         <div className='space-y-2'>
           <div className='flex items-center justify-between'>
             <h2 className='text-xl font-semibold'>{subPost.title}</h2>
-            
+
             {/* 사담 토글 */}
             <div className='flex items-center gap-3'>
               {/* 인증 상태 표시 */}
               {oocUnlocked ? (
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <ShieldCheck className="w-3 h-3" />
+                <div className='flex items-center gap-1 text-xs text-green-600'>
+                  <ShieldCheck className='w-3 h-3' />
                   <span>인증됨</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Shield className="w-3 h-3" />
+                <div className='flex items-center gap-1 text-xs text-muted-foreground'>
+                  <Shield className='w-3 h-3' />
                   <span>미인증</span>
                 </div>
               )}
-              
+
               <Label htmlFor='ooc-toggle' className='text-sm font-medium'>
                 사담
               </Label>
@@ -107,9 +107,6 @@ export const SubPostContent = ({
                 checked={showOOC}
                 onCheckedChange={handleOocToggle}
               />
-              <span className='text-xs text-muted-foreground'>
-                {showOOC ? 'ON' : 'OFF'}
-              </span>
             </div>
           </div>
           {subPost.description && (
@@ -118,7 +115,6 @@ export const SubPostContent = ({
             </p>
           )}
         </div>
-        
       </div>
 
       {/* 콘텐츠 */}

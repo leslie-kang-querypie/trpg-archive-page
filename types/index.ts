@@ -1,6 +1,13 @@
 export interface LogEntry {
   id: number;
-  type: 'system' | 'character' | 'whisper' | 'dice' | 'ooc' | 'damage' | 'handout';
+  type:
+    | 'system'
+    | 'character'
+    | 'whisper'
+    | 'dice'
+    | 'ooc'
+    | 'damage'
+    | 'handout';
   character?: string;
   target?: string;
   content: string;
@@ -60,9 +67,7 @@ export interface SenderMapping {
   sender: string;
   type: string;
   count: number;
-  imageFile?: string;
   avatarUrl?: string;
-  customAvatarUrl?: string;
   expanded?: boolean;
   displayName?: string;
   whisperFrom?: string;

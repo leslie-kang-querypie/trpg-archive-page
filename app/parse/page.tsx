@@ -39,33 +39,50 @@ export default function ParsePage() {
   const [senderMappings, setSenderMappings] = useState<SenderMapping[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const steps = [
+  const getSteps = () => [
     {
       id: 'script',
       title: '스크립트 복사',
       description: '브라우저에서 실행',
+      status:
+        currentStep === 0
+          ? 'current'
+          : currentStep > 0
+            ? 'completed'
+            : 'pending',
     },
     {
       id: 'parse',
       title: '데이터 파싱',
       description: 'JSON 분석',
+      status:
+        currentStep === 1
+          ? 'current'
+          : currentStep > 1
+            ? 'completed'
+            : 'pending',
     },
     {
       id: 'mapping',
       title: '타입 매핑',
       description: '발신자 설정',
+      status:
+        currentStep === 2
+          ? 'current'
+          : currentStep > 2
+            ? 'completed'
+            : 'pending',
     },
   ];
 
-  const originalScript = `// Roll20 메시지 파싱 개선 버전
+  const originalScript = `// Roll20 메시지 파싱 정리 버전
 const messages = Array.from(document.querySelectorAll('.message'));
 
-const parsed = messages.map((msg, index) => {
+const parsed = messages.map((msg) => {
     // 기본 정보 추출
     const messageId = msg.getAttribute('data-messageid') || '';
     const messageClasses = msg.className;
     const isWhisper = messageClasses.includes('whisper');
-    const isGeneral = messageClasses.includes('general');
     
     // 발신자 정보 추출
     const byElement = msg.querySelector('.by');
@@ -145,7 +162,7 @@ const parsed = messages.map((msg, index) => {
         content = textNodes.join(' ').trim();
     }
     
-    // 아바타 이미지 URL 추출
+    // 아바타 이미지 URL 추출 (OOC 판단용)
     const avatarImg = msg.querySelector('.avatar img');
     let avatarUrl = '';
     
@@ -163,17 +180,13 @@ const parsed = messages.map((msg, index) => {
     }
     
     return {
-        id: index + 1,
         messageId: messageId,
         time: time,
         sender: actualSender,
-        originalSender: sender, // 원본 발신자 정보도 보존
         content: content,
         messageType: messageClasses,
         isWhisper: isWhisper,
-        isGeneral: isGeneral,
-        avatarUrl: avatarUrl,
-        rawHTML: msg.outerHTML
+        avatarUrl: avatarUrl
     };
 });
 
@@ -216,6 +229,13 @@ link.click();`;
         );
 
         setParsedData(validMessages);
+
+        // 디버깅: 파싱된 데이터 확인
+        console.log('파싱된 메시지 샘플:', validMessages.slice(0, 3));
+        console.log(
+          'OOC 메시지가 있는지 확인:',
+          validMessages.some(msg => (msg as any).isOoc)
+        );
 
         // sender별 통계 및 아바타 정보 생성 - 개선된 데이터 구조 대응
         const senderStats: {
@@ -280,58 +300,53 @@ link.click();`;
 
         const mappings: SenderMapping[] = Object.entries(senderStats)
           .map(([sender, data]) => {
-            // 아바타 URL에서 파일명 추출하여 imageFile로 설정
-            let imageFile = '';
-            if (data.avatarUrl) {
-              try {
-                const url = new URL(data.avatarUrl);
-                const pathname = url.pathname;
+            // isWhisper가 true인 메시지가 있는지 확인
+            const whisperMessages = validMessages.filter(
+              msg => msg.sender === sender && (msg as any).isWhisper
+            );
+            const hasWhisperMessages = whisperMessages.length > 0;
 
-                // d20.io 이미지 URL의 경우 특별 처리
-                if (
-                  url.hostname.includes('d20.io') ||
-                  url.hostname.includes('files.d20.io')
-                ) {
-                  const parts = pathname.split('/');
-                  const filename =
-                    parts[parts.length - 2] || parts[parts.length - 1]; // 마지막 또는 그 전 부분
-                  if (filename && filename.length > 5) {
-                    imageFile = `${sender.replace(/\s+/g, '_')}_${filename.substring(0, 8)}.png`;
-                  }
-                } else if (pathname.includes('/users/avatar/')) {
-                  // Roll20 내장 아바타의 경우
-                  const avatarId = pathname.split('/').pop();
-                  if (avatarId) {
-                    imageFile = `${sender.replace(/\s+/g, '_')}_avatar_${avatarId}.png`;
-                  }
-                } else {
-                  // 일반적인 이미지 파일
-                  const filename = pathname.split('/').pop();
-                  if (
-                    filename &&
-                    (filename.includes('.png') ||
-                      filename.includes('.jpg') ||
-                      filename.includes('.jpeg') ||
-                      filename.includes('.gif') ||
-                      filename.includes('.webp'))
-                  ) {
-                    imageFile = filename;
-                  } else if (filename) {
-                    imageFile = `${filename}.png`;
-                  }
-                }
-              } catch (e) {
-                // URL 파싱 실패시 발신자명 기반으로 생성
-                imageFile = `${sender.replace(/\s+/g, '_')}.png`;
-              }
+            // 아바타 URL 패턴으로 OOC 여부 판단
+            const hasOocUrl =
+              data.avatarUrl &&
+              (data.avatarUrl.startsWith('https://app.roll20.net/users/') ||
+                data.avatarUrl.includes('placeholder') ||
+                data.avatarUrl.includes('default'));
+
+            const hasOocMessages = hasOocUrl;
+
+            // 귓속말 메시지가 있으면 기본 발신자/수신자 정보 추출
+            let whisperFrom = '';
+            let whisperTo = '';
+
+            if (hasWhisperMessages && whisperMessages.length > 0) {
+              // 귓속말의 경우 기본적으로 발신자와 수신자 설정
+              whisperFrom = sender;
+              whisperTo = 'GM'; // 기본값으로 GM에게 보내는 귓속말로 설정
+            }
+
+            // 타입 우선순위: 시스템 > OOC > 귓속말 > 캐릭터
+            let messageType = 'character';
+            if (sender === 'SYSTEM') {
+              messageType = 'system';
+              console.log(`${sender}를 system 타입으로 설정`);
+            } else if (hasOocMessages) {
+              messageType = 'ooc';
+              console.log(`${sender}를 OOC 타입으로 설정`);
+            } else if (hasWhisperMessages) {
+              messageType = 'whisper';
+              console.log(`${sender}를 whisper 타입으로 설정`);
+            } else {
+              console.log(`${sender}를 character 타입으로 설정`);
             }
 
             return {
               sender,
-              type: 'character', // 기본값
+              type: messageType,
               count: data.count,
               avatarUrl: data.avatarUrl,
-              imageFile: imageFile,
+              whisperFrom: hasWhisperMessages ? whisperFrom : undefined,
+              whisperTo: hasWhisperMessages ? whisperTo : undefined,
             };
           })
           .sort((a, b) => b.count - a.count);
@@ -369,18 +384,10 @@ link.click();`;
     }
   };
 
-  const updateSenderImage = (sender: string, imageFile: string) => {
+  const updateSenderAvatarUrl = (sender: string, avatarUrl: string) => {
     setSenderMappings(prev =>
       prev.map(mapping =>
-        mapping.sender === sender ? { ...mapping, imageFile } : mapping
-      )
-    );
-  };
-
-  const updateCustomAvatarUrl = (sender: string, customAvatarUrl: string) => {
-    setSenderMappings(prev =>
-      prev.map(mapping =>
-        mapping.sender === sender ? { ...mapping, customAvatarUrl } : mapping
+        mapping.sender === sender ? { ...mapping, avatarUrl } : mapping
       )
     );
   };
@@ -460,15 +467,12 @@ link.click();`;
 
         // LogEntry 형태로 변환
         const logEntry = {
-          id: (message as any).id || index + 1, // 원본 id 사용, 없으면 index 사용
+          id: (message as any).messageId || `msg_${index + 1}`, // messageId 사용, 없으면 생성된 id 사용
           content: message.content,
         } as any;
 
-        // 아바타 정보 추가 - customAvatarUrl 우선, 없으면 원본 avatarUrl 사용
-        const avatarUrl =
-          mapping?.customAvatarUrl ||
-          (message as any).avatarUrl ||
-          mapping?.avatarUrl;
+        // 아바타 정보 추가
+        const avatarUrl = (message as any).avatarUrl || mapping?.avatarUrl;
         if (avatarUrl && !avatarUrl.includes('$0')) {
           logEntry.avatar = avatarUrl;
         }
@@ -592,7 +596,7 @@ link.click();`;
         <div className='space-y-8'>
           <div className='flex justify-center'>
             <Stepper
-              steps={steps}
+              steps={getSteps() as any}
               currentStep={currentStep}
               onStepClick={stepIndex => {
                 // 이전 단계나 현재 단계로만 이동 가능
@@ -639,7 +643,7 @@ link.click();`;
                     </li>
                     <li>Console 탭으로 이동합니다</li>
                     <li>위 스크립트를 복사해서 붙여넣고 Enter를 누릅니다</li>
-                    <li>자동으로 개선된 JSON 파일이 다운로드됩니다</li>
+                    <li>자동으로 JSON 파일이 다운로드됩니다</li>
                     <li>다운로드된 파일을 다음 단계에서 업로드하세요</li>
                   </ol>
                   <div className='mt-3 p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800'>
@@ -735,14 +739,25 @@ link.click();`;
           {currentStep === 2 && (
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Settings className='h-5 w-5' />
-                  발신자 타입 매핑
-                </CardTitle>
-                <CardDescription>
-                  각 발신자의 메시지 타입을 설정하세요. 메시지 개수순으로
-                  정렬되어 있습니다.
-                </CardDescription>
+                <div className='flex gap-2 justify-between'>
+                  <div className='flex flex-col gap-2'>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Settings className='h-5 w-5' />
+                      발신자 타입 매핑
+                    </CardTitle>
+                    <CardDescription>
+                      각 발신자의 메시지 타입을 설정하세요. 메시지 개수순으로
+                      정렬되어 있습니다.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={applyMappings}
+                    className='flex items-center gap-2'
+                  >
+                    <MessageSquare className='h-4 w-4' />
+                    로그 편집 페이지로 이동
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className='space-y-4'>
                 {senderMappings.length > 0 && (
@@ -753,32 +768,18 @@ link.click();`;
                       </div>
                       <div className='flex gap-2'>
                         <Button
-                          onClick={() => setCurrentStep(1)}
-                          variant='outline'
-                          size='sm'
-                        >
-                          이전 단계
-                        </Button>
-                        <Button
                           onClick={loadMappingPreset}
                           variant='outline'
                           size='sm'
                         >
-                          불러오기
+                          매핑 프리셋 불러오기
                         </Button>
                         <Button
                           onClick={saveMappingPreset}
                           variant='outline'
                           size='sm'
                         >
-                          저장하기
-                        </Button>
-                        <Button
-                          onClick={applyMappings}
-                          className='flex items-center gap-2'
-                        >
-                          <MessageSquare className='h-4 w-4' />
-                          로그 편집 페이지로 이동
+                          매핑 프리셋 저장하기
                         </Button>
                       </div>
                     </div>
@@ -792,14 +793,9 @@ link.click();`;
                           <div className='flex items-start gap-3 p-3'>
                             <div className='flex items-center gap-3 flex-1'>
                               {/* 아바타 미리보기 */}
-                              {!mapping.avatarUrl ||
-                              mapping?.avatarUrl?.startsWith(
-                                'https://app.roll20.net'
-                              ) ? (
-                                <div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium'>
-                                  {mapping.sender.charAt(0)}
-                                </div>
-                              ) : (
+                              {mapping.avatarUrl &&
+                              (mapping.type === 'character' ||
+                                mapping.type === 'whisper') ? (
                                 <img
                                   src={mapping.avatarUrl}
                                   alt={mapping.sender}
@@ -810,6 +806,10 @@ link.click();`;
                                     ).style.display = 'none';
                                   }}
                                 />
+                              ) : (
+                                <div className='w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium'>
+                                  {mapping.sender.charAt(0)}
+                                </div>
                               )}
 
                               <div className='flex-1'>
@@ -872,22 +872,24 @@ link.click();`;
 
                               {!mapping.markedForDeletion && (
                                 <>
-                                  <div className='flex flex-col gap-1'>
-                                    <Label className='text-xs text-muted-foreground'>
-                                      표시 이름
-                                    </Label>
-                                    <Input
-                                      placeholder={mapping.sender}
-                                      value={mapping.displayName || ''}
-                                      onChange={e =>
-                                        updateDisplayName(
-                                          mapping.sender,
-                                          e.target.value
-                                        )
-                                      }
-                                      className='w-48 text-sm'
-                                    />
-                                  </div>
+                                  {mapping.type !== 'system' && (
+                                    <div className='flex flex-col gap-1'>
+                                      <Label className='text-xs text-muted-foreground'>
+                                        표시 이름
+                                      </Label>
+                                      <Input
+                                        placeholder={mapping.sender}
+                                        value={mapping.displayName || ''}
+                                        onChange={e =>
+                                          updateDisplayName(
+                                            mapping.sender,
+                                            e.target.value
+                                          )
+                                        }
+                                        className='w-48 text-sm'
+                                      />
+                                    </div>
+                                  )}
 
                                   {mapping.type === 'whisper' && (
                                     <>
@@ -928,71 +930,25 @@ link.click();`;
                                     </>
                                   )}
 
-                                  {mapping.type === 'character' && (
-                                    <div className='flex flex-col gap-1'>
-                                      <Label className='text-xs text-muted-foreground'>
-                                        이미지 파일명
-                                      </Label>
-                                      <Input
-                                        placeholder='character-name.png'
-                                        value={mapping.imageFile || ''}
-                                        onChange={e =>
-                                          updateSenderImage(
-                                            mapping.sender,
-                                            e.target.value
-                                          )
-                                        }
-                                        className='w-48 text-sm'
-                                      />
-                                      <div className='text-xs text-muted-foreground'>
-                                        public/assets/ 폴더 기준
-                                      </div>
-                                      {mapping.avatarUrl && (
-                                        <Button
-                                          type='button'
-                                          variant='ghost'
-                                          size='sm'
-                                          className='text-xs h-6 px-2 justify-start'
-                                          onClick={() => {
-                                            if (mapping.avatarUrl) {
-                                              navigator.clipboard.writeText(
-                                                mapping.avatarUrl
-                                              );
-                                              alert(
-                                                '원본 URL이 복사되었습니다!'
-                                              );
-                                            }
-                                          }}
-                                        >
-                                          원본 URL 복사
-                                        </Button>
-                                      )}
-                                    </div>
-                                  )}
-
                                   {/* 아바타 URL 입력 필드 */}
                                   {!mapping.markedForDeletion &&
                                     (mapping.type === 'character' ||
-                                      mapping.type === 'ooc' ||
                                       mapping.type === 'whisper') && (
                                       <div className='flex flex-col gap-1'>
                                         <Label className='text-xs text-muted-foreground'>
-                                          아바타 URL (선택사항)
+                                          아바타 URL
                                         </Label>
                                         <Input
-                                          placeholder='https://example.com/avatar.png'
-                                          value={mapping.customAvatarUrl || ''}
+                                          placeholder='아바타 이미지 URL을 입력하세요'
+                                          value={mapping.avatarUrl || ''}
                                           onChange={e =>
-                                            updateCustomAvatarUrl(
+                                            updateSenderAvatarUrl(
                                               mapping.sender,
                                               e.target.value
                                             )
                                           }
                                           className='w-48 text-sm'
                                         />
-                                        <div className='text-xs text-muted-foreground'>
-                                          원본보다 우선 적용됩니다
-                                        </div>
                                       </div>
                                     )}
                                 </>
