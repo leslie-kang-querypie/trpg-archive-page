@@ -34,6 +34,9 @@ export default function PostPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState('');
+  const [oocUnlocked, setOocUnlocked] = useState(false);
+  const [oocPasswordInput, setOocPasswordInput] = useState('');
+  const [oocError, setOocError] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [readingSettings, setReadingSettings] = useState<ReadingSettings>({
     showAvatars: true,
@@ -74,6 +77,22 @@ export default function PostPage() {
     } else {
       setError('비밀번호가 올바르지 않습니다.');
       setPasswordInput('');
+    }
+  };
+
+  const handleOocPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!post) return;
+    
+    const oocPassword = post.oocPassword || post.password; // oocPassword가 없으면 기본 password 사용
+    
+    if (oocPasswordInput === oocPassword) {
+      setOocUnlocked(true);
+      setOocError('');
+      setOocPasswordInput(''); // 비밀번호 입력 필드 초기화
+    } else {
+      setOocError('사담 비밀번호가 올바르지 않습니다.');
+      setOocPasswordInput('');
     }
   };
 
@@ -256,6 +275,12 @@ export default function PostPage() {
               subPost={activeSubPost}
               characters={post.sessionInfo.characters}
               settings={readingSettings}
+              post={post}
+              oocUnlocked={oocUnlocked}
+              onOocPasswordSubmit={handleOocPasswordSubmit}
+              oocPasswordInput={oocPasswordInput}
+              setOocPasswordInput={setOocPasswordInput}
+              oocError={oocError}
             />
           </div>
         )}

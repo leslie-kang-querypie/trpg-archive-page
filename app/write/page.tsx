@@ -25,7 +25,8 @@ export default function WritePage() {
     thumbnail: '',
     tags: [] as string[],
     password: '',
-    isPrivate: true
+    isPrivate: true,
+    oocPassword: ''
   });
 
   // 세션 정보 상태
@@ -212,6 +213,7 @@ export default function WritePage() {
       views: 0,
       password: postData.password,
       isPrivate: postData.isPrivate,
+      oocPassword: postData.oocPassword,
       sessionInfo,
       subPosts
     };
@@ -339,15 +341,30 @@ export default function WritePage() {
                   </div>
 
                   {postData.isPrivate && (
-                    <div>
-                      <Label htmlFor="password">비밀번호</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={postData.password}
-                        onChange={(e) => setPostData(prev => ({ ...prev, password: e.target.value }))}
-                        placeholder="비밀번호를 설정하세요"
-                      />
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="password">포스트 비밀번호</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={postData.password}
+                          onChange={(e) => setPostData(prev => ({ ...prev, password: e.target.value }))}
+                          placeholder="포스트 열람 비밀번호를 설정하세요"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ooc-password">사담 비밀번호</Label>
+                        <Input
+                          id="ooc-password"
+                          type="password"
+                          value={postData.oocPassword}
+                          onChange={(e) => setPostData(prev => ({ ...prev, oocPassword: e.target.value }))}
+                          placeholder="사담 표시용 별도 비밀번호 (선택사항)"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          사담을 보려면 추가 비밀번호가 필요합니다. 비어두면 포스트 비밀번호와 동일하게 설정됩니다.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

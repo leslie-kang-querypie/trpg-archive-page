@@ -20,6 +20,7 @@ export interface Post {
   views: number;
   password: string;
   isPrivate: boolean;
+  oocPassword: string;
   sessionInfo: SessionInfo;
   subPosts: SubPost[];
 }
