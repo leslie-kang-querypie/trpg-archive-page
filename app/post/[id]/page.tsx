@@ -219,7 +219,7 @@ export default function PostPage() {
         {post.isPrivate && !isUnlocked ? (
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2 mb-2'>
                 <Lock className='w-5 h-5' />
                 세션 로그
               </CardTitle>
@@ -251,7 +251,7 @@ export default function PostPage() {
         ) : !post.isPrivate && !isUnlocked ? (
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2 mb-2'>
                 <FileText className='w-5 h-5' />
                 세션 로그
               </CardTitle>
