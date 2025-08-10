@@ -1,0 +1,47 @@
+{
+  "id": 6,
+  "title": "펜드래곤 - 아서왕의 기사들",
+  "summary": "5세기 아서왕 시대의 브리튼을 배경으로 한 기사도 로맨스. 원탁의 기사들이 되어 왕국을 수호하는 장대한 서사시",
+  "thumbnail": "/placeholder.svg",
+  "tags": ["펜드래곤", "아서왕", "기사도"],
+  "date": "2024-02-12",
+  "isPrivate": false,
+  "sessionInfo": {
+    "rule": "킹 아서 펜드래곤 RPG",
+    "scenario": "성배 탐구",
+    "author": "그렉 스태포드 원작 각색",
+    "playerCount": 4,
+    "overview": "485년 아서왕이 즉위한 후 카멜롯 왕국의 번영기. 원탁의 기사로 임명된 네 명의 젊은 기사들이 성배를 찾아 떠나는 장대한 모험",
+    "characters": [
+      {
+        "name": "가레스 경",
+        "player": "김기사도",
+        "class": "기사",
+        "description": "오크니 가문 출신의 젊은 기사. 가웨인의 동생으로 용맹하고 정의로운 성격이다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "린네트 부인",
+        "player": "박용감",
+        "class": "귀부인",
+        "description": "콘월 출신의 용감한 귀족 여성. 검술과 마법에 모두 능하며 성배 탐구에 대한 깊은 관심이 있다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "트리스탄 경",
+        "player": "이명예",
+        "class": "음유시인 기사",
+        "description": "리오네스 출신의 기사이자 음유시인. 하프 연주와 검술에 모두 뛰어나며 로맨틱한 성격이다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "펜실베니아 수도사",
+        "player": "정신앙",
+        "class": "성직자",
+        "description": "글라스톤베리 수도원 출신의 학자 수도사. 성배에 대한 고대 지식과 치유 능력을 가지고 있다.",
+        "thumbnail": "/placeholder.svg"
+      }
+    ],
+    "highlight": "카멜롯의 황금빛 성당에서 울려 퍼지는 종소리와 함께, 네 명의 기사가 무릎을 꿇고 성배 탐구의 서약을 맹세했다. 앞에는 위험과 시련이 기다리고 있지만, 그들의 마음은 명예와 신앙으로 가득했다. 전설이 될 모험이 지금 시작된다."
+  }
+}

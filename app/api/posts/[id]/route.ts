@@ -9,26 +9,33 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const postPath = path.join(process.cwd(), 'data', 'posts', `${params.id}.json`);
+    const postDir = path.join(process.cwd(), 'data', 'posts', params.id);
+    const mainPostPath = path.join(postDir, 'main.json');
     
-    if (!fs.existsSync(postPath)) {
+    if (!fs.existsSync(postDir) || !fs.existsSync(mainPostPath)) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    const postData = JSON.parse(fs.readFileSync(postPath, 'utf-8'));
+    const postData = JSON.parse(fs.readFileSync(mainPostPath, 'utf-8'));
     
-    // Load sub-posts data
+    // Load all json files in the post directory as sub-posts (except main.json)
     const subPostsData: SubPost[] = [];
-    if (postData.subPostIds && Array.isArray(postData.subPostIds)) {
-      for (const subPostId of postData.subPostIds) {
-        const subPostPath = path.join(process.cwd(), 'data', 'sub-posts', params.id, `${subPostId}.json`);
-        
-        if (fs.existsSync(subPostPath)) {
-          const subPostData = JSON.parse(fs.readFileSync(subPostPath, 'utf-8'));
-          subPostsData.push(subPostData);
-        }
-      }
+    const files = fs.readdirSync(postDir).filter(file => 
+      file.endsWith('.json') && file !== 'main.json'
+    );
+
+    for (const file of files) {
+      const subPostPath = path.join(postDir, file);
+      const subPostData = JSON.parse(fs.readFileSync(subPostPath, 'utf-8'));
+      subPostsData.push(subPostData);
     }
+
+    // Sort sub-posts by their filename (numeric order)
+    subPostsData.sort((a, b) => {
+      const aNum = parseInt(files.find(f => f.includes(a.id || '0')), 10) || 0;
+      const bNum = parseInt(files.find(f => f.includes(b.id || '0')), 10) || 0;
+      return aNum - bNum;
+    });
 
     const post: Post = {
       ...postData,

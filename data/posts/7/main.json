@@ -1,0 +1,47 @@
+{
+  "id": 7,
+  "title": "던전월드 - 잃어버린 드워프 왕국",
+  "summary": "고전적인 판타지 세계를 PbtA 시스템으로 풀어낸 모험. 잃어버린 드워프 왕국의 보물을 찾아 떠나는 여행",
+  "thumbnail": "/placeholder.svg",
+  "tags": ["던전월드", "PbtA", "판타지"],
+  "date": "2024-02-15",
+  "isPrivate": false,
+  "sessionInfo": {
+    "rule": "던전월드",
+    "scenario": "잃어버린 드워프 왕국",
+    "author": "Adam Koebel & Sage LaTorra 원작 각색",
+    "playerCount": 4,
+    "overview": "전설 속에만 존재한다고 여겨지던 드워프 왕국 '카자크 돔'이 발견되었다. 모험가들은 이 잃어버린 왕국의 보물과 비밀을 찾아 위험한 여정을 떠난다.",
+    "characters": [
+      {
+        "name": "뜨란 아이언포지",
+        "player": "김드워프",
+        "class": "드워프",
+        "description": "카자크 돔의 후손으로 여겨지는 드워프 전사. 조상들의 왕국을 찾겠다는 의지로 가득하다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "엘라나 스타위버",
+        "player": "박마법",
+        "class": "위자드",
+        "description": "고대 마법에 대한 지식을 추구하는 인간 마법사. 잃어버린 왕국의 마법 비밀에 관심이 많다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "필로 퀵핑거",
+        "player": "이민첩",
+        "class": "씨프",
+        "description": "하플링 도적으로 보물 냄새를 맡는 데 천부적인 재능이 있다. 재빠른 손놀림이 특기다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "마르쿠스 라이트브링어",
+        "player": "정신성",
+        "class": "팔라딘",  
+        "description": "정의의 신을 섬기는 인간 팔라딘. 동료들을 보호하고 악을 척결하는 것이 사명이다.",
+        "thumbnail": "/placeholder.svg"
+      }
+    ],
+    "highlight": "깊은 산속에서 발견된 고대의 문양이 새겨진 거대한 석문. 그 너머로 들려오는 바람 소리는 수백 년 전 번영했던 드워프 문명의 메아리인 듯했다. 네 명의 모험가가 횃불을 들고 어둠 속으로 발걸음을 내디뎠을 때, 그들의 운명은 이미 고대의 비밀과 얽히기 시작했다."
+  }
+}

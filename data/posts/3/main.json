@@ -1,0 +1,48 @@
+{
+  "id": 3,
+  "title": "크툴루의 부름 - 인스머스의 그림자",
+  "summary": "1920년대 미국을 배경으로 한 코스믹 호러 시나리오. 인스머스 마을에 숨겨진 어둠의 진실을 파헤치는 탐사자들의 이야기",
+  "thumbnail": "/placeholder.svg",
+  "tags": ["크툴루", "호러", "1920년대"],
+  "date": "2024-02-01",
+  "password": "cthulhu",
+  "isPrivate": true,
+  "sessionInfo": {
+    "rule": "크툴루의 부름 7판",
+    "scenario": "인스머스의 그림자",
+    "author": "H.P. 러브크래프트 원작 각색",
+    "playerCount": 4,
+    "overview": "1928년 매사추세츠의 인스머스 마을에서 벌어지는 수상한 사건들을 조사하는 탐사자들의 이야기. 고대의 비밀과 인간의 한계를 뛰어넘는 공포가 기다리고 있다.",
+    "characters": [
+      {
+        "name": "마이클 톰슨",
+        "player": "김호러",
+        "class": "기자",
+        "description": "보스턴 헤럴드의 탐사 기자. 진실을 추구하는 집념이 강하지만 때로는 무모한 면이 있다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "엘리자베스 그레이",
+        "player": "박미스터리",
+        "class": "고고학자",
+        "description": "하버드 대학의 고고학 교수. 고대 문명과 신화에 대한 깊은 지식을 보유하고 있다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "토머스 웨이드",
+        "player": "이공포",
+        "class": "사립탐정",
+        "description": "보스턴에서 활동하는 베테랑 사립탐정. 냉철한 판단력과 예리한 관찰력이 특징이다.",
+        "thumbnail": "/placeholder.svg"
+      },
+      {
+        "name": "사라 윌슨",
+        "player": "정스릴러",
+        "class": "의사",
+        "description": "정신과 의사로 인간 심리에 대한 전문가. 초자연적 현상에 대해서는 회의적이다.",
+        "thumbnail": "/placeholder.svg"
+      }
+    ],
+    "highlight": "바다 냄새와 썩은 물고기 냄새가 진동하는 인스머스 마을. 이상하게 넓은 눈을 가진 주민들과 밤마다 들려오는 기묘한 소리. 네 명의 탐사자가 이 마을에 발을 들인 순간, 그들은 인류가 알아서는 안 될 진실과 마주하게 되었다."
+  }
+}

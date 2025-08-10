@@ -12,7 +12,6 @@ interface SubPostContentProps {
   subPost: SubPost | null;
   characters: Character[];
   settings: ReadingSettings;
-  post?: Post;
   oocUnlocked?: boolean;
   onOocPasswordSubmit?: (password: string) => void;
   oocError?: string;
@@ -22,7 +21,6 @@ export const SubPostContent = ({
   subPost,
   characters,
   settings,
-  post,
   oocUnlocked = false,
   onOocPasswordSubmit,
   oocError = '',

@@ -11,18 +11,25 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    const files = fs.readdirSync(postsDir).filter(file => file.endsWith('.json'));
+    const postDirs = fs.readdirSync(postsDir).filter(item => {
+      const itemPath = path.join(postsDir, item);
+      return fs.statSync(itemPath).isDirectory();
+    });
+    
     const posts: Post[] = [];
 
-    for (const file of files) {
-      const postPath = path.join(postsDir, file);
-      const postData = JSON.parse(fs.readFileSync(postPath, 'utf-8'));
+    for (const dir of postDirs) {
+      const mainPostPath = path.join(postsDir, dir, 'main.json');
       
-      // Don't load sub-posts content for list view
-      posts.push({
-        ...postData,
-        subPosts: []
-      });
+      if (fs.existsSync(mainPostPath)) {
+        const postData = JSON.parse(fs.readFileSync(mainPostPath, 'utf-8'));
+        
+        // Don't load sub-posts content for list view
+        posts.push({
+          ...postData,
+          subPosts: []
+        });
+      }
     }
 
     const sortedPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

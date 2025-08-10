@@ -229,17 +229,18 @@ export default function PostPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handlePasswordSubmit} className='flex gap-2'>
-                <Input
-                  ref={passwordInputRef}
-                  id='password'
-                  type='password'
-                  value={passwordInput}
-                  onChange={e => setPasswordInput(e.target.value)}
-                  placeholder='비밀번호를 입력하세요 (단축키: P)'
-                  className='w-full md:w-1/3'
-                  required
-                />
-                {error && <p className='text-sm text-destructive'>{error}</p>}
+                <div className='flex flex-col gap-2 grow-1'>
+                  <Input
+                    ref={passwordInputRef}
+                    id='password'
+                    type='password'
+                    value={passwordInput}
+                    onChange={e => setPasswordInput(e.target.value)}
+                    placeholder='비밀번호를 입력하세요 (단축키: P)'
+                    required
+                  />
+                  {error && <p className='text-sm text-destructive'>{error}</p>}
+                </div>
                 <Button type='submit'>
                   <Unlock className='w-4 h-4 mr-2' />
                   잠금 해제
@@ -285,7 +286,6 @@ export default function PostPage() {
               subPost={activeSubPost}
               characters={post.sessionInfo.characters}
               settings={readingSettings}
-              post={post}
               oocUnlocked={oocUnlocked}
               onOocPasswordSubmit={handleOocPasswordSubmit}
               oocError={oocError}
