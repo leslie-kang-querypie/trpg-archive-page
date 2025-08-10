@@ -25,16 +25,12 @@ export function SessionInfoTemplate({ sessionInfo }: SessionInfoTemplateProps) {
       <div className='space-y-3'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
           <div>
-            <span className='font-medium text-muted-foreground'>
-              게임 시스템:
-            </span>
+            <span className='font-medium text-muted-foreground'>룰:</span>
             <span className='ml-2'>{sessionInfo.rule}</span>
           </div>
           <div>
-            <span className='font-medium text-muted-foreground'>
-              참가 인원:
-            </span>
-            <span className='ml-2'>{sessionInfo.playerCount}명</span>
+            <span className='font-medium text-muted-foreground'>인원:</span>
+            <span className='ml-2'>{sessionInfo.playerCount}인</span>
           </div>
         </div>
       </div>
@@ -55,7 +51,7 @@ export function SessionInfoTemplate({ sessionInfo }: SessionInfoTemplateProps) {
           </div>
           <div>
             <span className='font-medium text-muted-foreground'>개요:</span>
-            <p className='mt-1 leading-relaxed'>{sessionInfo.overview}</p>
+            <span className='ml-2'>{sessionInfo.overview}</span>
           </div>
         </div>
       </div>
@@ -98,7 +94,7 @@ export function SessionInfoTemplate({ sessionInfo }: SessionInfoTemplateProps) {
 
       {/* 세션 하이라이트 */}
       <div className='space-y-3'>
-        <h4 className='font-semibold'>세션 하이라이트</h4>
+        <h4 className='font-semibold'>하이라이트</h4>
         <div className='text-sm leading-relaxed text-muted-foreground italic'>
           {sessionInfo.highlight}
         </div>

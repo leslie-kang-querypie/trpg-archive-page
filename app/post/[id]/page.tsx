@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock, Unlock, FileText } from 'lucide-react';
+import { Lock, Unlock, FileText, InfoIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
@@ -15,7 +15,13 @@ import { SubPostContent } from '@/components/sub-post-content';
 import { SubPostNavigation } from '@/components/sub-post-navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -30,7 +36,7 @@ export default function PostPage() {
   const params = useParams();
   const router = useRouter();
   const passwordInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState('');
@@ -62,7 +68,7 @@ export default function PostPage() {
         setLoading(false);
       }
     };
-    
+
     loadPost();
   }, [params.id]);
 
@@ -82,9 +88,9 @@ export default function PostPage() {
 
   const handleOocPasswordSubmit = (password: string) => {
     if (!post) return;
-    
+
     const oocPassword = post.oocPassword || post.password; // oocPassword가 없으면 기본 password 사용
-    
+
     if (password === oocPassword) {
       setOocUnlocked(true);
       setOocError('');
@@ -95,7 +101,8 @@ export default function PostPage() {
     }
   };
 
-  const activeSubPost = post?.subPosts.find(sp => sp.id === activeSubPostId) || null;
+  const activeSubPost =
+    post?.subPosts.find(sp => sp.id === activeSubPostId) || null;
 
   const shortcuts = [
     ...createCommonShortcuts(router),
@@ -164,7 +171,7 @@ export default function PostPage() {
 
   return (
     <>
-      <Header title="TRPG 로그 상세" showBackButton />
+      <Header title='TRPG 로그 상세' showBackButton />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         <Card className='mb-6'>
@@ -197,8 +204,8 @@ export default function PostPage() {
             <div className='space-y-6'>
               <div>
                 <h3 className='text-lg font-semibold mb-4 flex items-center gap-2'>
-                  <Unlock className='w-5 h-5' />
-                  캠페인 정보
+                  <InfoIcon className='w-5 h-5' />
+                  세션 정보
                 </h3>
                 <div className='bg-muted/30 p-6 rounded-lg'>
                   <SessionInfoTemplate sessionInfo={post.sessionInfo} />
@@ -208,49 +215,36 @@ export default function PostPage() {
           </CardContent>
         </Card>
 
-{post.isPrivate && !isUnlocked ? (
+        {post.isPrivate && !isUnlocked ? (
           <Card>
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Lock className='w-5 h-5' />
-                세션 로그 (비밀글)
+                세션 로그
               </CardTitle>
+              <CardDescription className='text-sm text-muted-foreground'>
+                이 세션 로그는 잠겨 있습니다. 열람하기 위해서는 비밀번호를
+                입력해주세요.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='space-y-4'>
-                <div>
-                  <h4 className='text-lg font-medium flex items-center gap-2 mb-2'>
-                    <Lock className='w-5 h-5' />
-                    비밀번호가 필요합니다
-                  </h4>
-                  <p className='text-sm text-muted-foreground'>
-                    모든 세션 로그를 보려면 비밀번호를 입력해주세요.
-                  </p>
-                </div>
-                <form onSubmit={handlePasswordSubmit} className='space-y-4'>
-                  <div className='space-y-2'>
-                    <Label htmlFor='password'>비밀번호</Label>
-                    <Input
-                      ref={passwordInputRef}
-                      id='password'
-                      type='password'
-                      value={passwordInput}
-                      onChange={e => setPasswordInput(e.target.value)}
-                      placeholder='비밀번호를 입력하세요 (단축키: P)'
-                      required
-                    />
-                    {error && (
-                      <p className='text-sm text-destructive'>
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                  <Button type='submit'>
-                    <Unlock className='w-4 h-4 mr-2' />
-                    잠금 해제
-                  </Button>
-                </form>
-              </div>
+              <form onSubmit={handlePasswordSubmit} className='flex gap-2'>
+                <Input
+                  ref={passwordInputRef}
+                  id='password'
+                  type='password'
+                  value={passwordInput}
+                  onChange={e => setPasswordInput(e.target.value)}
+                  placeholder='비밀번호를 입력하세요 (단축키: P)'
+                  className='w-full md:w-1/3'
+                  required
+                />
+                {error && <p className='text-sm text-destructive'>{error}</p>}
+                <Button type='submit'>
+                  <Unlock className='w-4 h-4 mr-2' />
+                  잠금 해제
+                </Button>
+              </form>
             </CardContent>
           </Card>
         ) : !post.isPrivate && !isUnlocked ? (
@@ -260,30 +254,22 @@ export default function PostPage() {
                 <FileText className='w-5 h-5' />
                 세션 로그
               </CardTitle>
+              <CardDescription className='text-sm text-muted-foreground'>
+                아래 버튼을 클릭하여 세션 로그를 볼 수 있습니다.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='space-y-4'>
-                <div>
-                  <h4 className='text-lg font-medium flex items-center gap-2 mb-2'>
-                    <FileText className='w-5 h-5' />
-                    세션 로그를 확인하세요
-                  </h4>
-                  <p className='text-sm text-muted-foreground'>
-                    아래 버튼을 클릭하여 세션 로그를 볼 수 있습니다.
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setIsUnlocked(true);
-                    if (post.subPosts.length > 0) {
-                      setActiveSubPostId(post.subPosts[0].id);
-                    }
-                  }}
-                >
-                  <FileText className='w-4 h-4 mr-2' />
-                  세션 로그 보기
-                </Button>
-              </div>
+              <Button
+                onClick={() => {
+                  setIsUnlocked(true);
+                  if (post.subPosts.length > 0) {
+                    setActiveSubPostId(post.subPosts[0].id);
+                  }
+                }}
+              >
+                <FileText className='w-4 h-4 mr-2' />
+                세션 로그 보기
+              </Button>
             </CardContent>
           </Card>
         ) : (

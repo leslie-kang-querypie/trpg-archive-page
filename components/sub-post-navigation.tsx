@@ -61,7 +61,7 @@ export function SubPostNavigation({
                     {subPost.title}
                   </div>
                   {subPost.description && (
-                    <div className='text-xs text-muted-foreground line-clamp-2'>
+                    <div className='text-xs text-muted-foreground truncate'>
                       {subPost.description}
                     </div>
                   )}

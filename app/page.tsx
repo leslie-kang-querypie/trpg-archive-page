@@ -68,8 +68,12 @@ export default function HomePage() {
   }, []);
 
   const allTags = Array.from(new Set(posts.flatMap(post => post.tags)));
-  const allRules = Array.from(new Set(posts.map(post => post.sessionInfo.rule)));
-  const allPlayerCounts = Array.from(new Set(posts.map(post => post.sessionInfo.playerCount.toString()))).sort((a, b) => parseInt(a) - parseInt(b));
+  const allRules = Array.from(
+    new Set(posts.map(post => post.sessionInfo.rule))
+  );
+  const allPlayerCounts = Array.from(
+    new Set(posts.map(post => post.sessionInfo.playerCount.toString()))
+  ).sort((a, b) => parseInt(a) - parseInt(b));
 
   const shortcuts = [
     ...createCommonShortcuts(router),
@@ -103,9 +107,14 @@ export default function HomePage() {
   useKeyboardShortcuts(shortcuts);
 
   const filteredPosts = posts.filter(post => {
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => post.tags.includes(tag));
-    const matchesRule = selectedRule === 'all' || post.sessionInfo.rule === selectedRule;
-    const matchesPlayerCount = selectedPlayerCount === 'all' || post.sessionInfo.playerCount.toString() === selectedPlayerCount;
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.some(tag => post.tags.includes(tag));
+    const matchesRule =
+      selectedRule === 'all' || post.sessionInfo.rule === selectedRule;
+    const matchesPlayerCount =
+      selectedPlayerCount === 'all' ||
+      post.sessionInfo.playerCount.toString() === selectedPlayerCount;
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.summary.toLowerCase().includes(searchQuery.toLowerCase());
@@ -118,7 +127,12 @@ export default function HomePage() {
 
   return (
     <>
-      <Header title="TRPG 로그 아카이브" showParseButton showEditButton showWriteButton />
+      <Header
+        title='TRPG 로그 아카이브'
+        showParseButton
+        showEditButton
+        showWriteButton
+      />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
         {/* Controls */}
@@ -147,7 +161,10 @@ export default function HomePage() {
             </SelectContent>
           </Select>
 
-          <Select value={selectedPlayerCount} onValueChange={setSelectedPlayerCount}>
+          <Select
+            value={selectedPlayerCount}
+            onValueChange={setSelectedPlayerCount}
+          >
             <SelectTrigger className='w-full md:w-32'>
               <SelectValue placeholder='인원 선택' />
             </SelectTrigger>
@@ -155,7 +172,7 @@ export default function HomePage() {
               <SelectItem value='all'>모든 인원</SelectItem>
               {allPlayerCounts.map(count => (
                 <SelectItem key={count} value={count}>
-                  {count}명
+                  {count}인
                 </SelectItem>
               ))}
             </SelectContent>
@@ -163,28 +180,27 @@ export default function HomePage() {
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button 
+              <Button
                 ref={tagSelectRef}
-                variant="outline" 
+                variant='outline'
                 className='w-full md:w-48 justify-between'
               >
-                {selectedTags.length === 0 
-                  ? '태그 선택' 
-                  : selectedTags.length === 1 
-                    ? selectedTags[0] 
-                    : `${selectedTags.length}개 태그 선택`
-                }
-                <ChevronDown className="ml-2 h-4 w-4" />
+                {selectedTags.length === 0
+                  ? '태그 선택'
+                  : selectedTags.length === 1
+                    ? selectedTags[0]
+                    : `${selectedTags.length}개 태그 선택`}
+                <ChevronDown className='ml-2 h-4 w-4' />
               </Button>
             </PopoverTrigger>
             <PopoverContent className='w-48'>
-              <div className='space-y-2'>
+              <div className='space-y-4'>
                 {allTags.map(tag => (
                   <div key={tag} className='flex items-center space-x-2'>
                     <Checkbox
                       id={`tag-${tag}`}
                       checked={selectedTags.includes(tag)}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={checked => {
                         if (checked) {
                           setSelectedTags(prev => [...prev, tag]);
                         } else {
@@ -192,7 +208,7 @@ export default function HomePage() {
                         }
                       }}
                     />
-                    <label 
+                    <label
                       htmlFor={`tag-${tag}`}
                       className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
                     >
@@ -242,7 +258,7 @@ export default function HomePage() {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
             {filteredPosts.map(post => (
               <Link key={post.id} href={`/post/${post.id}`}>
-                <Card className='hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden'>
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden pt-0'>
                   <div className='relative'>
                     <Image
                       src={post.thumbnail || '/placeholder.svg'}
@@ -269,11 +285,11 @@ export default function HomePage() {
                     <CardTitle className='text-lg line-clamp-2'>
                       {post.title}
                     </CardTitle>
-                    <CardDescription className='line-clamp-2'>
+                    <CardDescription className='line-clamp-4'>
                       {post.summary}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className='mt-auto'>
                     <div className='flex flex-wrap gap-1 mb-3'>
                       {post.tags.map(tag => (
                         <Badge
@@ -294,12 +310,12 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className='space-y-4'>
+          <div className='flex flex-col gap-4'>
             {filteredPosts.map(post => (
               <Link key={post.id} href={`/post/${post.id}`}>
                 <Card className='hover:shadow-md transition-shadow cursor-pointer'>
-                  <CardContent className='p-4'>
-                    <div className='flex gap-4'>
+                  <CardContent className='px-8 py-2'>
+                    <div className='flex gap-8'>
                       <div className='relative flex-shrink-0'>
                         <Image
                           src={post.thumbnail || '/placeholder.svg'}
@@ -326,22 +342,24 @@ export default function HomePage() {
                         <h3 className='font-semibold text-lg mb-1 line-clamp-1'>
                           {post.title}
                         </h3>
-                        <p className='text-muted-foreground text-sm mb-2 line-clamp-2'>
+                        <p className='text-muted-foreground text-sm mb-3 line-clamp-2'>
                           {post.summary}
                         </p>
-                        <div className='flex flex-wrap gap-1 mb-2'>
-                          {post.tags.map(tag => (
-                            <Badge
-                              key={tag}
-                              variant='secondary'
-                              className='text-xs'
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                          <span>{post.date}</span>
+                        <div className='flex gap-2 justify-between'>
+                          <div className='flex flex-wrap gap-1'>
+                            {post.tags.map(tag => (
+                              <Badge
+                                key={tag}
+                                variant='secondary'
+                                className='text-xs'
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className='text-sm text-muted-foreground'>
+                            <span>{post.date}</span>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -1,10 +1,8 @@
 'use client';
 
 import {
-  Download,
   Upload,
   Code,
-  FileText,
   Settings,
   MessageSquare,
   ChevronDown,
@@ -14,7 +12,6 @@ import { useState } from 'react';
 
 import { Header } from '@/components/header';
 import { ParsedMessage, SenderMapping, MESSAGE_TYPES } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -32,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Stepper } from '@/components/ui/steps';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -47,18 +43,18 @@ export default function ParsePage() {
     {
       id: 'script',
       title: '스크립트 복사',
-      description: '브라우저에서 실행'
+      description: '브라우저에서 실행',
     },
     {
       id: 'parse',
       title: '데이터 파싱',
-      description: 'JSON 분석'
+      description: 'JSON 분석',
     },
     {
       id: 'mapping',
       title: '타입 매핑',
-      description: '발신자 설정'
-    }
+      description: '발신자 설정',
+    },
   ];
 
   const originalScript = `// Roll20 메시지 파싱 개선 버전
@@ -593,23 +589,18 @@ link.click();`;
       <Header title='TRPG 채팅 로그 파서' showBackButton />
 
       <div className='container mx-auto px-4 py-6 max-w-6xl'>
-        <div className='mb-6'>
-          <p className='text-muted-foreground'>
-            Roll20이나 다른 플랫폼에서 추출한 채팅 로그를 분석하고 JSON 형태로
-            변환합니다.
-          </p>
-        </div>
-
         <div className='space-y-8'>
-          <div className='flex justify-center py-6'>
+          <div className='flex justify-center'>
             <Stepper
               steps={steps}
               currentStep={currentStep}
-              onStepClick={(stepIndex) => {
+              onStepClick={stepIndex => {
                 // 이전 단계나 현재 단계로만 이동 가능
-                if (stepIndex <= currentStep || 
-                    (stepIndex === 1 && rawData.trim()) || 
-                    (stepIndex === 2 && senderMappings.length > 0)) {
+                if (
+                  stepIndex <= currentStep ||
+                  (stepIndex === 1 && rawData.trim()) ||
+                  (stepIndex === 2 && senderMappings.length > 0)
+                ) {
                   setCurrentStep(stepIndex);
                 }
               }}
@@ -620,17 +611,17 @@ link.click();`;
           {currentStep === 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Code className='h-5 w-5' />
-                  브라우저 콘솔 스크립트
-                </CardTitle>
-                <CardDescription>
-                  Roll20 웹페이지에서 개발자 도구 콘솔에 붙여넣어 실행하는
-                  스크립트입니다.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex justify-end mb-4'>
+                <div className='flex gap-2 justify-between'>
+                  <div className='flex flex-col gap-2'>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Code className='h-5 w-5' />
+                      브라우저 콘솔 스크립트
+                    </CardTitle>
+                    <CardDescription>
+                      Roll20 웹페이지에서 개발자 도구 콘솔에 붙여넣어 실행하는
+                      스크립트입니다.
+                    </CardDescription>
+                  </div>
                   <Button
                     onClick={() => setCurrentStep(1)}
                     className='flex items-center gap-2'
@@ -638,19 +629,9 @@ link.click();`;
                     다음 단계
                   </Button>
                 </div>
-                <div className='relative'>
-                  <pre className='bg-muted p-4 rounded-lg text-sm overflow-x-auto font-mono'>
-                    <code>{originalScript}</code>
-                  </pre>
-                  <Button
-                    onClick={copyScriptToClipboard}
-                    className='absolute top-2 right-2'
-                    size='sm'
-                  >
-                    복사
-                  </Button>
-                </div>
-                <div className='p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <div className='p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>
                   <h4 className='font-medium mb-2'>사용 방법:</h4>
                   <ol className='list-decimal list-inside space-y-1 text-sm text-muted-foreground'>
                     <li>
@@ -675,6 +656,18 @@ link.click();`;
                     </p>
                   </div>
                 </div>
+                <div className='relative'>
+                  <pre className='bg-muted p-6 rounded-lg text-sm overflow-x-auto font-mono'>
+                    <code>{originalScript}</code>
+                  </pre>
+                  <Button
+                    onClick={copyScriptToClipboard}
+                    className='absolute top-4 right-4'
+                    size='sm'
+                  >
+                    복사
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -682,24 +675,28 @@ link.click();`;
           {currentStep === 1 && (
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Upload className='h-5 w-5' />
-                  로그 데이터 업로드 및 파싱
-                </CardTitle>
-                <CardDescription>
-                  브라우저에서 추출한 JSON 데이터를 여기에 붙여넣거나 파일로
-                  업로드하세요.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex gap-2 flex-wrap'>
+                <div className='flex gap-2 justify-between'>
+                  <div className='flex flex-col gap-2'>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Upload className='h-5 w-5' />
+                      로그 데이터 업로드 및 파싱
+                    </CardTitle>
+                    <CardDescription>
+                      브라우저에서 추출한 JSON 데이터를 여기에 붙여넣거나 파일로
+                      업로드하세요.
+                    </CardDescription>
+                  </div>
                   <Button
-                    onClick={() => setCurrentStep(0)}
-                    variant='outline'
+                    onClick={parseLogData}
+                    disabled={isProcessing || !rawData.trim()}
                     className='flex items-center gap-2'
                   >
-                    이전 단계
+                    {isProcessing ? '처리 중...' : '파싱 실행 및 다음 단계'}
                   </Button>
+                </div>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <div className='flex gap-6 items-end justify-between flex-wrap'>
                   <Button
                     onClick={() =>
                       document.getElementById('file-upload')?.click()
@@ -710,6 +707,12 @@ link.click();`;
                     <Upload className='h-4 w-4' />
                     파일 업로드
                   </Button>
+
+                  {rawData && (
+                    <div className='text-sm text-muted-foreground'>
+                      입력된 데이터: {rawData.length.toLocaleString()} 문자
+                    </div>
+                  )}
                   <input
                     id='file-upload'
                     type='file'
@@ -717,13 +720,6 @@ link.click();`;
                     onChange={handleFileUpload}
                     className='hidden'
                   />
-                  <Button
-                    onClick={parseLogData}
-                    disabled={isProcessing || !rawData.trim()}
-                    className='flex items-center gap-2'
-                  >
-                    {isProcessing ? '처리 중...' : '파싱 실행 및 다음 단계'}
-                  </Button>
                 </div>
 
                 <Textarea
@@ -732,12 +728,6 @@ link.click();`;
                   onChange={e => setRawData(e.target.value)}
                   className='min-h-[300px] font-mono text-sm'
                 />
-
-                {rawData && (
-                  <div className='text-sm text-muted-foreground'>
-                    입력된 데이터: {rawData.length.toLocaleString()} 문자
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
